@@ -59,10 +59,10 @@ The nine supplied apartment Photo_*.jpg files are all 1280 x 640. SHA-256 compar
 
 ## Visual polish and generation flow
 
-- codex/ai-generation-flow: replace three-per-ten-minute demo quota with six images / twenty suggestions per minute; preserve two in-flight slots, deduplication and explicit-only retries. Cache successful transparent-model discovery for five minutes and use faster lossless PNG compression. Provider 402 now has a distinct credit/key-limit message. Integration owner: Codex; no dependency changes. Verification pending.
+- codex/ai-generation-flow: replace three-per-ten-minute demo quota with six images / twenty suggestions per minute; preserve two in-flight slots, deduplication and explicit-only retries. Cache successful transparent-model discovery for five minutes and use faster lossless PNG compression. Provider 402 now has a distinct credit/key-limit message. Integration owner: Codex; no dependency changes. Automated and real generation checks passed.
 
 - codex/marker-size-precision: image size up to 128px in UI, validation and ZIP persistence; 36px default unchanged. Display committed angles to one decimal without rounding stored drag coordinates; preserve signed intermediate drafts and explicit Apply. Shared schema shape unchanged, widened bound owned by Codex.
 
-- codex/studio-visual-design: self-hosted Manrope / Space Grotesk with OFL licenses, doorway mark, charcoal/lilac studio palette, consistent SVG controls and right-aligned select/disclosure chevrons. Existing panorama-first sidebar and phone bottom sheet retained. Browser verification pending.
+- codex/studio-visual-design: self-hosted Manrope / Space Grotesk with OFL licenses, doorway mark, charcoal/lilac studio palette, consistent SVG controls and right-aligned select/disclosure chevrons. Existing panorama-first sidebar and phone bottom sheet retained. Desktop, 390px layout and production verification passed.
 
 Combined verification: typecheck, lint, 137 tests / 12 files and production build passed. Desktop and 390px browser checks confirmed 128px fixed markers after zoom/save/reload, one-decimal negative coordinates, correct local fonts, consistent selects and no horizontal overflow. One real transparent bracelet generated in 9.1 seconds; physical phones remain untested.
