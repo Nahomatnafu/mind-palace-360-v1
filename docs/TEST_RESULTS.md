@@ -8,7 +8,7 @@
 | npm run lint | PASS | Exit0, zero warnings/errors after cleanup |
 | npm run test | PASS |12 files,117 tests; model/media/coordinate/storage/ZIP/AI/motion/adapter/visible save status/density |
 | npm run build | PASS | Webpack production build; static home +two NodeAI routes; last mobile CSS sizing tweak is verified by deployment build |
-| Reproducible hosting build | PASS | Vercel clean installed382 packages and built Next16.4.0; first deployment READY |
+| Reproducible hosting build | PASS | Vercel clean installed382 packages and built Next16.4.0; final deployment dpl_53jWqbnPtraymdCb1WFJxZcyECDm READY |
 | Runtime dependency audit | PASS | npm audit --omit=dev:0 vulnerabilities |
 | Full dependency audit | FAIL |5 high transitive development-linter advisories; braces3.0.3 latest registry version; no compatible patched version verified. Runtime is unaffected by these packages |
 | GitHub access | PASS | New private mind-palace-360-v1; aneeshaa1 permission write returned by API |
@@ -32,6 +32,7 @@
 | Mocked provider/security failures | PASS | Malformed output, missing configuration, forbidden requests, rate/concurrency/duplicate limits, malformed raster and no silent model substitution covered in suite |
 | Visible failed saving | PASS | Tested actual UI persistPalace helper: pending stays Saving; quota failure produces Save failed; error propagates; no success until explicit successful retry. Browser quota injection NOT RUN |
 | Browser motion fallback | PASS | Enable motion explicitly enters Waiting; desktop without sensor data falls back to actionable no-data state |
+| Final hosted release | PASS | Stable home200, QR200, unauthenticated AI401; Add memory then canvas tap opens image editor |
 | Full paid authoring UI sequence | NOT RUN | Server calls and manual generated-image placement passed; no second paid image requested just to replay the full UI |
 | Physical AndroidChrome/iPhoneSafari | NOT RUN | Sensors/permissions/rotation/background/resume/pinch/real keyboard require user phones |
 | UI deletion/resize/replace/link-edit exhaustive matrix | NOT RUN | Implemented with model/persistence/adapter checks; full rendered matrix remains for additional device regression |
@@ -41,3 +42,5 @@
 Initial isolated network/keyring failures, sandbox child-build EPERM and disk ENOSPC were resolved for integrated checks through authorized normal terminal commands, new-rebuild cache cleanup and disabling webpack disk cache. Agent-local blocked builds are historical; they do not replace the integrated production checks. No old application source was copied.
 
 Remaining manual checklist: docs/DEMO.md. Temporary illustrative regression data belongs to local test origins; apartment bytes remain local. Release URL: https://mind-palace-360-v1.vercel.app .
+
+Additional two-room hosted import attempt: NOT VERIFIED. The computer-use file-chooser operation stalled and reset the tool. Prior local panorama imports passed; this attempt is not a passing check.

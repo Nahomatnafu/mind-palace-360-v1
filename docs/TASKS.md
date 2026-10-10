@@ -19,8 +19,8 @@ Integration owner: Codex. Shared contracts, dependency changes and lockfile are 
 | codex/motion-controls | media agent | Browser sensor controller |12 tests/build passed; physical devices NOT RUN |
 | codex/motion-integration | Codex | Explicit controls/editor suspension | Integrated; desktop waiting/fallback checked |
 | codex/density-fixtures | media agent |118 distinct technical images | Roundtrip and rendered count/selection passed |
-| codex/demo-delivery | Codex | Vercel/secrets/QR | First HTTPS deployment passed; repaired release publishing |
-| codex/demo-regression | Codex | Placement/lifecycle/save-status regression | Regression fix passed; final full checks pending |
+| codex/demo-delivery | Codex | Vercel/secrets/QR | Final HTTPS deployment READY; public home/QR and protected AI checked |
+| codex/demo-regression | Codex | Placement/lifecycle/save-status regression | 117 tests/typecheck/lint/production build passed; GitHub release push pending |
 
 ## Collaboration
 
