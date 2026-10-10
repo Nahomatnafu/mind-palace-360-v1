@@ -1,11 +1,11 @@
 {
-  "name": "mind-palace-360-v2",
+  "name": "mind-palace-360-v1",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "next dev --webpack --port 3005",
     "build": "next build --webpack",
-    "start": "next start",
+    "start": "next start --port 3005",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

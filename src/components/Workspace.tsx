@@ -8,6 +8,7 @@ import { createMotionController, type MotionController, type MotionState } from 
 import { createDemo } from '@/domain/demo';
 import { normalizeYaw, type Asset, type Memory, type Palace, type PalaceSummary, type TourLink } from '@/domain/model';
 import { repository } from '@/storage/repository';
+import { persistPalace } from '@/storage/commit';
 import { importImage } from '@/media/images';
 import { exportPalace, importPalace } from '@/storage/backup';
 import type { ViewerAdapter } from '@/viewer/adapter';
@@ -55,7 +56,7 @@ export default function Workspace(){
   useEffect(()=>{const escape=(e:KeyboardEvent)=>{if(e.key==='Escape'&&!mutation.current){setSelected(null);setSettings(false);setPlacement(null);setLinkDraft(null);setDraft(null);setDraftAsset(null);setMenu(false);}};window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape);},[]);
   useEffect(()=>{const controller=createMotionController({getCamera:()=>viewer.current?.camera()??{yaw:0,pitch:0,zoom:35},onCamera:camera=>viewer.current?.lookAt(camera),onState:setMotionState});motion.current=controller;return()=>{controller.destroy();motion.current=null;};},[]);
   useEffect(()=>{if(selected||draft||settings||menu||linkDraft||placement)motion.current?.disable();},[selected,draft,settings,menu,linkDraft,placement]);
-  async function save(next:Palace,assets:Asset[]=[],locked=false){if(!locked&&mutation.current)return false;mutation.current=true;setBusy(true);setError('');setStatus('Saving…');try{next={...next,updatedAt:new Date().toISOString()};await repository.save(next,assets);setPalace(next);setPalaces(previous=>[{id:next.id,title:next.title,updatedAt:next.updatedAt},...previous.filter(p=>p.id!==next.id)]);setStatus('Saved on this device');return true;}catch(e){setStatus('Save failed');setError(message(e));return false;}finally{mutation.current=false;setBusy(false);}}
+  async function save(next:Palace,assets:Asset[]=[],locked=false){if(!locked&&mutation.current)return false;mutation.current=true;setBusy(true);setError('');setStatus('Saving…');try{next={...next,updatedAt:new Date().toISOString()};await persistPalace(repository,next,assets,setStatus);setPalace(next);setPalaces(previous=>[{id:next.id,title:next.title,updatedAt:next.updatedAt},...previous.filter(p=>p.id!==next.id)]);setStatus('Saved on this device');return true;}catch(e){setStatus('Save failed');setError(message(e));return false;}finally{mutation.current=false;setBusy(false);}}
   function resetPanels(){cancelDraft();setSelected(null);setSettings(false);setLinkDraft(null);setPlacement(null);setMenu(false);motion.current?.disable();}
   function openPalace(p:Palace){resetPanels();setPalace(p);setRoomId(p.startRoomId);setError('');}
   async function choosePalace(id:string){if(busy||mutation.current)return;mutation.current=true;setBusy(true);try{const p=await repository.load(id);if(!p)throw new Error('Palace not found.');openPalace(p);setStatus('Saved on this device');}catch(e){setError(message(e));}finally{mutation.current=false;setBusy(false);}}

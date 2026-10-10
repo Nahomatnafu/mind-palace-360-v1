@@ -16,9 +16,21 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
   const viewer = new Viewer({ container, navbar: false, plugins: [MarkersPlugin], defaultYaw: 0, defaultPitch: 0, defaultZoomLvl: 35, minFov: 30, maxFov: 110, mousewheel: true, touchmoveTwoFingers: false, loadingTxt: 'Opening your room…' });
   const plugin = viewer.getPlugin<MarkersPlugin>(MarkersPlugin);
   const camera = (): Camera => { const p=viewer.getPosition(); return {yaw:normalizeYaw(toDegrees(p.yaw)),pitch:toDegrees(p.pitch),zoom:viewer.getZoomLevel()}; };
-  const click = (event: events.ClickEvent) => { if (event.data.rightclick || event.data.objects?.length) return; callbacks.place(normalizeYaw(toDegrees(event.data.yaw)),toDegrees(event.data.pitch)); };
+  let pointer:{x:number;y:number}|null=null;let movedPointer=false;
+  const pointerDown=(event:PointerEvent)=>{pointer={x:event.clientX,y:event.clientY};movedPointer=false;};
+  const pointerMove=(event:PointerEvent)=>{if(pointer&&Math.hypot(event.clientX-pointer.x,event.clientY-pointer.y)>6)movedPointer=true;};
+  const pointerUp=()=>{pointer=null;};
+  const click=(event:MouseEvent)=>{
+    if(event.button!==0||movedPointer){movedPointer=false;return;}
+    if(event.target instanceof Element&&event.target.closest('button,.psv-marker'))return;
+    const bounds=container.getBoundingClientRect();
+    try{const point=viewer.dataHelper.viewerCoordsToSphericalCoords({x:event.clientX-bounds.left,y:event.clientY-bounds.top});if(point)callbacks.place(normalizeYaw(toDegrees(point.yaw)),toDegrees(point.pitch));}catch{/* A click outside the rendered sphere is not a placement. */}
+  };
   const moved = () => callbacks.camera?.(camera());
-  viewer.addEventListener(events.ClickEvent.type,click);
+  container.addEventListener('click',click);
+  container.addEventListener('pointerdown',pointerDown);
+  window.addEventListener('pointermove',pointerMove);
+  window.addEventListener('pointerup',pointerUp);
   viewer.addEventListener(events.PositionUpdatedEvent.type,moved);
   let disposed=false;
   let request=0;
@@ -45,6 +57,6 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
     camera,
     lookAt(position){if(!disposed){viewer.rotate({yaw:toRadians(position.yaw),pitch:toRadians(position.pitch)});viewer.zoom(position.zoom);}},
     zoom(delta){viewer.zoom(Math.max(0,Math.min(100,viewer.getZoomLevel()+delta)));},
-    destroy(){disposed=true;request++;viewer.removeEventListener(events.ClickEvent.type,click);viewer.removeEventListener(events.PositionUpdatedEvent.type,moved);viewer.destroy();},
+    destroy(){disposed=true;request++;container.removeEventListener('click',click);container.removeEventListener('pointerdown',pointerDown);window.removeEventListener('pointermove',pointerMove);window.removeEventListener('pointerup',pointerUp);viewer.removeEventListener(events.PositionUpdatedEvent.type,moved);viewer.destroy();},
   };
 }

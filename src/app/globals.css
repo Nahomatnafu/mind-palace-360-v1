@@ -7,3 +7,5 @@
 .menu-button{border:1px solid #516a5c;border-radius:8px;background:#24372c;color:#dcebe1;padding:10px;font-size:11px}.image-source{display:flex;align-items:center;gap:16px}.image-source img{object-fit:contain}.image-placeholder{font-size:42px;color:#86a28a;width:72px;text-align:center}.editor-panel details{font-size:12px}.editor-panel summary{cursor:pointer;padding:8px 0}.editor-panel input[type=range]{padding:0}.stage-tools .add-memory{background:#c3e4bc;color:#163422;border-color:#c3e4bc;font-weight:600}
 
 .motion-message{position:absolute;right:20px;bottom:24px;max-width:min(300px,45%);padding:10px 14px;background:#172c23da;color:#d4ebd9;border-radius:10px;font-size:11px;pointer-events:none}@media(max-width:760px){.motion-message{right:12px;bottom:115px;max-width:calc(100% - 24px)}.stage-label{max-width:calc(100% - 24px)}}
+
+@media(max-width:760px){.topbar button,.stage-tools button,.editor-panel button:not(.close-button){min-height:44px}.stage-tools button{font-size:11px;padding:10px}.placement-banner{top:120px}.close-button{min-height:44px;min-width:44px}}
