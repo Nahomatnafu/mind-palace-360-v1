@@ -49,7 +49,14 @@ export default function AssociationGenerator({concept,context,code,onCode,onImag
   <p className={styles.hint}>Describe the object itself. We create a cutout with a transparent background.</p>
   <button className={styles.generate} disabled={busy||disabled||!prompt.trim()} onClick={()=>void run('generating')}>{phase==='generating'?'Creating cutout…':'Generate image'}</button>
   <p className={styles.hint}>Uses AI credits. No automatic generations or retries.</p>
-  {busy&&<><p role="status">{phase==='generating'?'This can take a minute or two.':'Looking for familiar objects…'}</p><button onClick={cancel}>Cancel request</button></>}
+  {busy&&<><GenerationStatus key={phase} generating={phase==='generating'}/><button onClick={cancel}>Cancel request</button></>}
   {notice&&<p role="status">{notice}</p>}{error&&<p role="alert" className={styles.error}>{error}</p>}
  </div>;
+}
+
+function GenerationStatus({generating}:{generating:boolean}) {
+ const [started]=useState(()=>Date.now());
+ const [elapsed,setElapsed]=useState(0);
+ useEffect(()=>{const timer=setInterval(()=>setElapsed(Math.floor((Date.now()-started)/1000)),1000);return()=>clearInterval(timer);},[started]);
+ return <div className={styles.progress}><span className={styles.spinner} aria-hidden="true"/><div><p role="status">{generating?'Creating your cutout':'Finding familiar objects'}</p><p><span aria-label="Elapsed time">{elapsed}s elapsed</span> · {generating?'You can cancel anytime.':'One moment…'}</p></div></div>;
 }

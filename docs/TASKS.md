@@ -56,3 +56,7 @@ The nine supplied apartment Photo_*.jpg files are all 1280 x 640. SHA-256 compar
 - codex/team-apartment-assets: owner explicitly requested sharing the nine apartment photos in GitHub. Repository privacy and aneeshaa1 write access verified. Exact source copies plus the ready-to-restore nine-room, 16-connection ZIP are in team-assets/apartment. This is a narrow exception to the prior no-photo-commits policy.
 - The entire team-assets directory is excluded from Vercel and is outside public/. No API key or demo code is included. The app still uses browser-local persistence; each teammate restores the ZIP in their own browser. No cloud synchronization is implied.
 - Verification passed: SHA-256 matches all nine source copies and all nine archived originals; ZIP has nine rooms, 16 connections and zero personal notes. Staged files match the exact allowlist. Private-media and env files remain ignored; build traces contain neither private-media nor team-assets. Typecheck, lint, all 133 tests (12 files), and production build passed.
+
+## Visual polish and generation flow
+
+- codex/ai-generation-flow: replace three-per-ten-minute demo quota with six images / twenty suggestions per minute; preserve two in-flight slots, deduplication and explicit-only retries. Cache successful transparent-model discovery for five minutes and use faster lossless PNG compression. Provider 402 now has a distinct credit/key-limit message. Integration owner: Codex; no dependency changes. Verification pending.

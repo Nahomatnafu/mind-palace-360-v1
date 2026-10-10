@@ -4,12 +4,23 @@ import { providerJSON, type FetchAI } from './openrouter';
 
 function record(value: unknown): Record<string, unknown> { if (!value || typeof value !== 'object' || Array.isArray(value)) throw new AIError(502, 'The image provider returned unexpected data.', 'INVALID_PROVIDER_RESPONSE'); return value as Record<string, unknown>; }
 function supports(parameters: Record<string, unknown>, key: string, value: string): boolean { const descriptor = parameters[key]; return !!descriptor && Array.isArray(record(descriptor).values) && (record(descriptor).values as unknown[]).includes(value); }
-export async function generateImage(fetcher: FetchAI, apiKey: string, model: string, prompt: string, signal: AbortSignal): Promise<Buffer> {
-  // Dedicated image discovery must be used: image-only models may be absent from /models.
+// Cache successful capability discovery, never generated images, prompts, or API keys.
+const capabilityCaches = new WeakMap<FetchAI, Map<string, { expires: number; endpoint: Record<string, unknown> }>>();
+async function imageEndpoint(fetcher: FetchAI, apiKey: string, model: string, signal: AbortSignal) {
+  let cache = capabilityCaches.get(fetcher);
+  if (!cache) { cache = new Map(); capabilityCaches.set(fetcher, cache); }
+  const cached = cache.get(model);
+  if (cached && cached.expires > Date.now()) return cached.endpoint;
   const capabilities = record(await providerJSON(fetcher, 'https://openrouter.ai/api/v1/images/models/' + model.split('/').map(encodeURIComponent).join('/') + '/endpoints', { headers: { Authorization: 'Bearer ' + apiKey } }, signal, 300_000));
   if (capabilities.id !== model || !Array.isArray(capabilities.endpoints) || !capabilities.endpoints.length) throw new AIError(503, 'The selected image model is unavailable. No replacement was used. Upload an image instead.', 'MODEL_UNAVAILABLE');
   const endpoint = capabilities.endpoints.map(record).find(item => item.supported_parameters && supports(record(item.supported_parameters), 'background', 'transparent'));
   if (!endpoint) throw new AIError(503, 'This model cannot currently create transparent cutouts. Upload a transparent PNG instead.', 'TRANSPARENCY_UNAVAILABLE');
+  if (cache.size >= 8) cache.clear();
+  cache.set(model, { expires: Date.now() + 300_000, endpoint });
+  return endpoint;
+}
+export async function generateImage(fetcher: FetchAI, apiKey: string, model: string, prompt: string, signal: AbortSignal): Promise<Buffer> {
+  const endpoint = await imageEndpoint(fetcher, apiKey, model, signal);
   const parameters = endpoint.supported_parameters ? record(endpoint.supported_parameters) : {};
   const providerTag = typeof endpoint.provider_tag === 'string' ? endpoint.provider_tag : undefined;
   const payload = { model, prompt: prompt + '\nCreate a clean cutout of only the requested object. Fully visible, centered, large with clear padding on every edge. Genuine transparent alpha background, not white and not a drawn checkerboard. No lettering or captions. Do not add scenery, display stands, extra props, hands, wrists or people to display an object unless explicitly requested. A bracelet must be the bracelet alone, not worn on a wrist.', n: 1, provider: { allow_fallbacks: false, ...(providerTag ? { only: [providerTag] } : {}) }, ...(supports(parameters,'aspect_ratio','1:1') ? { aspect_ratio: '1:1' } : {}), ...(supports(parameters,'quality','low') ? { quality: 'low' } : {}), background: 'transparent', output_format: 'png' };
@@ -28,7 +39,7 @@ export async function generateImage(fetcher: FetchAI, apiKey: string, model: str
     const metadata = await pipeline.metadata();
     if (!['png','jpeg','webp'].includes(metadata.format ?? '') || !metadata.width || !metadata.height || (metadata.pages ?? 1) > 1) throw new Error('Unsupported raster');
     await verifyCutout(bytes);
-    const png = await pipeline.rotate().resize({ width: 768, height: 768, fit: 'inside', withoutEnlargement: true }).png({ compressionLevel: 9 }).toBuffer();
+    const png = await pipeline.rotate().resize({ width: 768, height: 768, fit: 'inside', withoutEnlargement: true }).png({ compressionLevel: 6 }).toBuffer();
     if (png.byteLength > 3_000_000) throw new AIError(502, 'The generated image exceeds the delivery size limit.', 'IMAGE_TOO_LARGE');
     return png;
   } catch (error) { if (error instanceof AIError) throw error; throw new AIError(502, 'The generated image could not be decoded safely.', 'INVALID_IMAGE'); }
