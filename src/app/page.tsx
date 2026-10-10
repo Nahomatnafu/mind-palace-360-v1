@@ -1,1 +1,2 @@
-export default function Home() { return <main className="bootstrap"><span className="eyebrow">MIND PALACE / FRESH BUILD</span><h1>Make memories<br/>visible.</h1><p>Your rooms. Your associations. A place for everything you want to remember.</p><p className="status">The new creative workspace is being built.</p></main>; }
+import ViewerPreview from '@/components/ViewerPreview';
+export default function Home() { return <ViewerPreview/>; }
