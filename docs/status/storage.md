@@ -1,6 +1,6 @@
 # Local persistence and backup
 
-Owner: storage agent. Branch: codex/local-persistence. Shared contract: 6e549b9.
+Owner: storage agent. Branches: codex/local-persistence and codex/demo-backup. Shared contract: 6e549b9.
 
 ## Test plan before implementation
 
@@ -24,7 +24,7 @@ Physical mobile storage/low-quota behavior: NOT RUN; requires real devices.
 ## Results
 
 - PASS: Vitest repository suite, 8 tests (transaction rollback, missing image, unchanged old document after failed edit, shared/orphan cleanup, spoofed type/dimensions, immutable IDs).
-- PASS: Vitest backup suite, 7 tests (fresh-ID round trip, traversal, schema/manifest, lying expansion size, oversized archive rejection before reading, external demo URL, tampered checksum).
+- PASS: Vitest backup suite, 10 tests (fresh-ID round trip, DEFLATE archive, missing image, duplicate paths, traversal, schema/manifest, lying expansion size, oversized archive rejection before reading, external demo URL, tampered checksum).
 - PASS: TypeScript tsc --noEmit for the worktree.
 - BLOCKED: Standard ESLint src/storage produced no output and was terminated after 30 seconds by the runtime timeout.
 - BLOCKED: next build --webpack reached optimized production compilation, then produced no further output and was terminated after 30 seconds. Integration owner must rerun these.
