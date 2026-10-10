@@ -34,3 +34,19 @@ Teammate work is ready to partition: create a three-minute Creative-track pitch 
 ## Dependencies and limits
 
 Original apartment folder is available; one image was tested locally. No private media is deployed. Physical sensor tests and an actual117/118-item learning experiment remain user-owned. Initial isolated-runtime network/keyring failures resolved by authorized normal terminal calls; disk exhaustion resolved by removing only rebuild caches and disabling webpack disk cache. No further sign-ins are currently needed.
+
+## October 10 editor and image-quality revision
+
+Owner: Codex (shared contracts unchanged, no new dependencies).
+
+- codex/image-quality: preserve validated panorama JPEG bytes instead of re-encoding/downscaling. Import regression passes.
+- codex/relatable-associations: prefer familiar literal objects; direct Gold example is bracelet/necklace/bar. Protected-handler regression passes. Live Gold/Au request returned Gold bracelet, Gold necklace and Gold bar.
+- codex/transparent-cutouts: require endpoint alpha support, explicit PNG output, visible subject and a transparent border. Reject opaque/blank/translucent-only outputs without automatic paid retry. Fifteen image tests pass. One live generation returned a plain bracelet alone: 768 x 768 PNG, 213015 bytes, alpha 0–255; transparent-border and visible-subject validation passed and output was visually inspected.
+- codex/replace-room-photo: replace a panorama without changing room IDs, camera, memory/link positions; display dimensions. Typecheck, lint, 132 tests and production build pass for the combined changes; replacement control browser validation pending.
+- codex/memory-editor-redesign: implemented from the supplied Kuula screenshots: context-specific right sidebar, real room thumbnail filmstrip, one shared memory title/note, direct picture generation or upload, optional familiar-object suggestions. Phone layout uses a bottom sheet. Desktop and 390px browser checks passed; release verification pending.
+
+The nine supplied apartment Photo_*.jpg files are all 1280 x 640. SHA-256 comparison confirms the private tour ZIP contains all nine exact originals; that ZIP did not reduce them. Older D:/OpenView Homes_First AD_Batch files are 3840 x 1920, but are not assumed to correspond to these apartment views. Higher-resolution exports of the same apartment photos are needed to recover actual detail. Do not upscale and describe it as restored detail. No cloud account is required for byte-preserving local import. Browser GPU texture limits still apply.
+
+- codex/high-resolution-panoramas: supports bounded 11904 x 5952 originals (80 million pixel limit; 32 MB encoded limit unchanged). Import/storage/backup subset: 39 tests pass. Full checks required again before integration.
+- Kuula reference now open at https://kuula.co/edit/n1/collection/7Tshf ; photo sidebar inspected read-only. User supplied five screenshots confirming the sidebar and thumbnail reference. Keep panorama visible alongside a context-specific editor and separate room navigation. No Kuula content saved or modified.
+- Feature branches are ready for integration after final lint. Production deployment and final smoke checks follow.

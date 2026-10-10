@@ -52,3 +52,26 @@ Typecheck, lint, 126 tests (12 files), and production build passed. Nine new dra
 Prepared private ZIP: nine 1280x640 JPEG panoramas, 16 directed circular connections, 1,328,448 bytes. Schema/checksums verified; original input hashes unchanged. Photos 5 and 6 are identical and retained. Restored as a separate apartment palace in the stable HTTPS desktop origin. All nine rooms rendered with one canvas and no error text; front-door connection opened the entry.
 
 Final corrected deployment dpl_3n2faDmA7cpi7qHE4pMTdoz9NXTE READY. Live desktop: circle drag saved; manual yaw -12.5/pitch -38 persisted through reload; image drag moved its center by 50px/35px while remaining 36px square; sample image coordinates restored. At 390x844, connection editor preserved -0. draft and applied -12.5; cancelling restored the committed position. Exported tested nine-room tour successfully. Source and all feature branches pushed; private photos/ZIP are absent from Git history. Physical Android/iPhone dragging remains NOT RUN.
+
+
+## Sidebar authoring and image quality (2026-10-10)
+
+Supersedes the earlier full-paid-authoring NOT RUN entry for the new flow. No dependencies, stored schema, or lockfile changes.
+
+| Check | Result | Evidence / limitation |
+|---|---|---|
+| Automated suite | PASS | 133 tests across 12 files. Includes byte-preserving panorama import, 11904 x 5952 acceptance within an 80 MP bound, alpha rejection, auth, backups, persistence, signed coordinates and adapter gestures. |
+| Typecheck / production build | PASS | tsc, ESLint (no warnings/errors) and Next webpack production build completed. |
+| Gold suggestions, real provider | PASS | Gold + Au context returned Gold bracelet, Gold necklace, Gold bar. |
+| Transparent cutout, real provider | PASS | 768 x 768 PNG, 213015 bytes, alpha 0–255; clear-edge and visible-subject checks passed; visually inspected bracelet alone. |
+| Direct generation through sidebar | PASS | No suggestions needed. Entered plain gold bracelet; image applied to draft; title Gold and note Au · Atomic number 79 stayed unchanged. |
+| Save / reload / note reveal | PASS | Saved the generated bracelet, reloaded, entered Explore, tapped image: correct Gold title and note rendered. |
+| Drag while sidebar stays open | PASS | Drag changed yaw/pitch live, then Save persisted. Marker remained 36 CSS px after zoom out. |
+| Negative coordinates | PASS | -12.5 yaw / -8 pitch applied. Connection -0. draft preserved; -12.5 committed; circle navigated to Entry and stairs in Explore. |
+| Real thumbnail filmstrip | PASS | Private nine-room test ZIP restored locally; all nine actual image thumbnails rendered. Thumbnail canvas output is disposable and does not alter originals. |
+| Responsive viewport | PASS, limited | 390 x 844 browser emulation: negative connection value saved and navigation worked; measured document width/scrollWidth both 390. This is not a physical phone sensor/keyboard test. |
+| Original source quality audit | PASS | All supplied apartment photos are 1280 x 640; ZIP asset SHA-256 matches all nine supplied files. No detail can be recovered without higher-resolution originals. |
+| Replace-photo UI and export | PASS | Replaced Front entrance in the local test copy; retained 9 rooms, 16 connections and -12.5/-38 front connection. Exported ZIP contains a byte-for-byte SHA-256 match to the original Photo_1.jpg (1280 x 640). |
+| Physical Android/iPhone | NOT RUN | Real touch keyboard, pinch, sensor permission/rotation still need the user's devices. |
+
+Two explicit live generations in this revision (one endpoint test and one full UI flow); no automatic retry or bulk generation. Private apartment images and test outputs remain ignored and excluded from deployment.

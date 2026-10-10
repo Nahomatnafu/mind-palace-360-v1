@@ -1,17 +1,32 @@
 import sharp from 'sharp';
 import { describe, expect, it, vi } from 'vitest';
 import { createImageHandler } from './image-handler';
+import { verifyCutout } from './image';
 import { AILimiter } from './security';
 const config = () => ({ apiKey: 'not-a-real-key', accessCode: 'demo-test' });
 const request = (body: unknown={prompt:'A gold bracelet'}) => new Request('https://demo.test/api/ai/image',{method:'POST',headers:{'Content-Type':'application/json',origin:'https://demo.test','x-demo-code':'demo-test'},body:JSON.stringify(body)});
 const capabilities = { id:'openai/gpt-image-2.5-flare',endpoints:[{provider_tag:'openai',supported_parameters:{aspect_ratio:{values:['1:1']},quality:{values:['low']},background:{values:['transparent']}}}]};
 describe('protected image generation',()=>{
   it('uses verified Image API, generates once and normalizes alpha PNG to 768px',async()=>{
-    const png=await sharp({create:{width:1000,height:900,channels:4,background:{r:100,g:20,b:10,alpha:0.5}}}).png().toBuffer();
+    const subject=await sharp({create:{width:500,height:500,channels:4,background:{r:180,g:150,b:30,alpha:1}}}).png().toBuffer();
+    const png=await sharp({create:{width:1000,height:900,channels:4,background:{r:0,g:0,b:0,alpha:0}}}).composite([{input:subject,gravity:'centre'}]).png().toBuffer();
     const fetcher=vi.fn().mockResolvedValueOnce(Response.json(capabilities)).mockResolvedValueOnce(Response.json({data:[{b64_json:png.toString('base64'),media_type:'image/png'}]}));
     const result=await createImageHandler({config,fetcher})(request());expect(result.status).toBe(200);expect(result.headers.get('Content-Type')).toBe('image/png');
     const metadata=await sharp(Buffer.from(await result.arrayBuffer())).metadata();expect(metadata.width).toBe(768);expect(metadata.hasAlpha).toBe(true);
-    expect(fetcher.mock.calls[1][0]).toBe('https://openrouter.ai/api/v1/images');const payload=JSON.parse(fetcher.mock.calls[1][1].body);expect(payload.model).toBe('openai/gpt-image-2.5-flare');expect(payload.n).toBe(1);expect(payload.background).toBe('transparent');expect(payload.provider.allow_fallbacks).toBe(false);
+    expect(fetcher.mock.calls[1][0]).toBe('https://openrouter.ai/api/v1/images');const payload=JSON.parse(fetcher.mock.calls[1][1].body);expect(payload.model).toBe('openai/gpt-image-2.5-flare');expect(payload.n).toBe(1);expect(payload.output_format).toBe('png');expect(payload.background).toBe('transparent');expect(payload.provider.allow_fallbacks).toBe(false);
+  });
+  it('requires transparent support before making a paid request',async()=>{
+    const fetcher=vi.fn().mockResolvedValue(Response.json({id:capabilities.id,endpoints:[{supported_parameters:{}}]}));
+    const result=await createImageHandler({config,fetcher})(request());
+    expect(result.status).toBe(503);expect((await result.json()).code).toBe('TRANSPARENCY_UNAVAILABLE');expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+  it.each([0,0.5,1])('rejects blank, globally translucent and opaque PNGs (alpha %s)',async alpha=>{
+    const bytes=await sharp({create:{width:32,height:32,channels:4,background:{r:200,g:100,b:0,alpha}}}).png().toBuffer();
+    await expect(verifyCutout(bytes)).rejects.toMatchObject({code:'BACKGROUND_NOT_REMOVED'});
+  });
+  it('rejects opaque JPEG rather than disguising it as a transparent PNG',async()=>{
+    const bytes=await sharp({create:{width:32,height:32,channels:3,background:'#eecc00'}}).jpeg().toBuffer();
+    await expect(verifyCutout(bytes)).rejects.toMatchObject({code:'BACKGROUND_NOT_REMOVED'});
   });
   it('unavailable model never submits a paid generation',async()=>{const fetcher=vi.fn().mockResolvedValue(new Response('',{status:404}));const result=await createImageHandler({config,fetcher})(request());expect(result.status).toBe(503);expect(fetcher).toHaveBeenCalledTimes(1);expect((await result.json()).code).toBe('MODEL_UNAVAILABLE');});
   it('empty endpoint list is unavailable, not a model fallback',async()=>{const fetcher=vi.fn().mockResolvedValue(Response.json({id:capabilities.id,endpoints:[]}));expect((await createImageHandler({config,fetcher})(request())).status).toBe(503);expect(fetcher).toHaveBeenCalledTimes(1);});
