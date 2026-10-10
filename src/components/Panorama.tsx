@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Camera } from '@/domain/model';
 import type { ViewerAdapter, ViewerMarker } from '@/viewer/adapter';
-interface Props { src: string; camera: Camera; markers: ViewerMarker[]; onSelect(id:string):void; onPlace(yaw:number,pitch:number):void; onReady?(viewer:ViewerAdapter|null):void }
+interface Props { roomKey?:string; src: string; camera: Camera; markers: ViewerMarker[]; onSelect(id:string):void; onPlace(yaw:number,pitch:number):void; onReady?(viewer:ViewerAdapter|null):void }
 export default function Panorama(props:Props) {
   const container=useRef<HTMLDivElement>(null);
   const engine=useRef<ViewerAdapter|null>(null);
@@ -29,7 +29,7 @@ export default function Panorama(props:Props) {
     return()=>{cancelled=true;};
   // Camera is the saved arrival view, not a trigger for reloading the texture.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[props.src,revision]);
+  },[props.src,props.roomKey,revision]);
   useEffect(()=>{if(loaded)engine.current?.markers(props.markers);},[props.markers,loaded]);
   return <div className="panorama"><div ref={container} className="panorama-engine"/>{error?<div className="viewer-notice" role="alert">{error}<button onClick={()=>setRevision(n=>n+1)}>Retry room</button></div>:!loaded?<div className="viewer-notice" role="status">Opening your room…</div>:null}</div>;
 }

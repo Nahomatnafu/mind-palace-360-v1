@@ -14,35 +14,35 @@ export function AssociationGenerator({ onImage, disabled = false }: AssociationG
   const [prompt,setPrompt] = useState(''); const [title,setTitle] = useState(''); const [note,setNote] = useState('');
   const [phase,setPhase] = useState<Phase>('idle'); const [error,setError] = useState(''); const [notice,setNotice] = useState('');
   const [generated,setGenerated] = useState<Generated>();
-  const controller = useRef<AbortController | undefined>(undefined); const epoch = useRef(0); const active = useRef(false); const mounted = useRef(true);
+  const controller = useRef<AbortController | undefined>(undefined); const epoch = useRef({value:0}); const active = useRef(false); const mounted = useRef(true);
   const busy = phase !== 'idle';
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; epoch.current++; controller.current?.abort(); }; },[]);
+  useEffect(() => { const operation=epoch.current; mounted.current = true; return () => { mounted.current = false; operation.value++; controller.current?.abort(); }; },[]);
   useEffect(() => () => { if (generated?.url) URL.revokeObjectURL(generated.url); },[generated?.url]);
-  function cancel() { epoch.current++; controller.current?.abort(); active.current = false; setPhase('idle'); setNotice('Request cancelled. A completed provider request may still incur a charge. Retry only when you choose.'); }
+  function cancel() { epoch.current.value++; controller.current?.abort(); active.current = false; setPhase('idle'); setNotice('Request cancelled. A completed provider request may still incur a charge. Retry only when you choose.'); }
   async function run(kind: 'suggesting' | 'generating') {
     if (active.current || disabled) return;
     if (!code.trim() || (kind === 'suggesting' ? !concept.trim() : !prompt.trim())) { setError('Enter the demo access code and '+(kind === 'suggesting' ? 'a concept.' : 'an image prompt.')); return; }
-    active.current = true; const operation = ++epoch.current; const aborter = new AbortController(); controller.current = aborter;
+    active.current = true; const operation = ++epoch.current.value; const aborter = new AbortController(); controller.current = aborter;
     setPhase(kind); setError(''); setNotice('');
     if (kind === 'generating') setGenerated(undefined);
     try {
       const response = await requireAIResponse(await fetch('/api/ai/'+(kind === 'suggesting' ? 'associations' : 'image'), { method:'POST',headers:{'Content-Type':'application/json','x-demo-code':code.trim(),'x-request-id':crypto.randomUUID()},body:JSON.stringify(kind === 'suggesting' ? {concept:concept.trim(),context:context.trim()} : {prompt:prompt.trim()}),signal:aborter.signal }));
-      if (operation !== epoch.current || !mounted.current) return;
+      if (operation !== epoch.current.value || !mounted.current) return;
       if (kind === 'suggesting') {
         const next = parseAssociations(await response.json());
-        if (operation !== epoch.current || !mounted.current) return;
+        if (operation !== epoch.current.value || !mounted.current) return;
         setSuggestions(next); setSelected(undefined); setGenerated(undefined); setNotice('Choose an association, then generate its image.');
       } else {
         if (!response.headers.get('Content-Type')?.startsWith('image/png')) throw new Error('AI returned an unsupported image. Try uploading your own image.');
         const blob = await response.blob();
         if (!blob.size || blob.size > 3_000_000) throw new Error('AI returned an empty or oversized image.');
         const asset = await importImage(new File([blob],'association.png',{type:'image/png'}),'memory');
-        if (operation !== epoch.current || !mounted.current) return;
+        if (operation !== epoch.current.value || !mounted.current) return;
         setGenerated({asset,title:title.trim() || selected?.title || concept.trim(),note:note.trim(),url:URL.createObjectURL(asset.blob)});
         setNotice('Preview ready. Choose Use image to add it to your memory.');
       }
-    } catch (failure) { if (operation === epoch.current && mounted.current && !aborter.signal.aborted) setError(failure instanceof Error ? failure.message : 'AI could not complete this request. Retry manually.'); }
-    finally { if (operation === epoch.current && mounted.current) { active.current = false; setPhase('idle'); } }
+    } catch (failure) { if (operation === epoch.current.value && mounted.current && !aborter.signal.aborted) setError(failure instanceof Error ? failure.message : 'AI could not complete this request. Retry manually.'); }
+    finally { if (operation === epoch.current.value && mounted.current) { active.current = false; setPhase('idle'); } }
   }
   async function applyImage() {
     if (!generated || active.current || disabled) return;
