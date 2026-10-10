@@ -36,3 +36,16 @@ describe('protected image generation',()=>{
   it('rejects repeated request without another provider call',async()=>{const fetcher=vi.fn().mockResolvedValue(new Response('',{status:404}));const handler=createImageHandler({config,fetcher,limiter:new AILimiter()});await handler(request());expect((await handler(request())).status).toBe(409);expect(fetcher).toHaveBeenCalledTimes(1);});
   it('returns timeout without retry',async()=>{const fetcher=vi.fn().mockRejectedValue(new DOMException('timeout','TimeoutError'));expect((await createImageHandler({config,fetcher})(request())).status).toBe(504);expect(fetcher).toHaveBeenCalledTimes(1);});
 });
+
+it('reuses successful discovery for five minutes but never retries or caches paid generations',async()=>{
+ const clock=vi.spyOn(Date,'now').mockReturnValue(1000);
+ const fetcher=vi.fn().mockImplementation(async(url:string)=>url.includes('/endpoints')?Response.json(capabilities):new Response('',{status:500}));
+ try {
+  const handler=createImageHandler({config,fetcher});
+  for(let i=0;i<2;i++)expect((await handler(request({prompt:'Object '+i}))).status).toBe(502);
+  expect(fetcher.mock.calls.filter(call=>String(call[0]).includes('/endpoints'))).toHaveLength(1);
+  clock.mockReturnValue(301000);await handler(request({prompt:'Object 3'}));
+  expect(fetcher.mock.calls.filter(call=>String(call[0]).includes('/endpoints'))).toHaveLength(2);
+  expect(fetcher.mock.calls.filter(call=>String(call[0]).endsWith('/images'))).toHaveLength(3);
+ } finally {clock.mockRestore();}
+});

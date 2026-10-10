@@ -8,6 +8,7 @@ export async function providerJSON(fetcher: FetchAI, url: string, init: RequestI
   const response = await fetcher(url, { ...init, signal, cache: 'no-store' });
   if (!response.ok) {
     await response.body?.cancel();
+    if (response.status === 402) throw new AIError(402, 'OpenRouter rejected this request for insufficient credits or a key spending limit. Check your OpenRouter balance and key limit.', 'PROVIDER_CREDITS');
     if (response.status === 429) throw new AIError(429, 'The AI provider is busy or rate limited. Retry manually later.', 'PROVIDER_RATE_LIMIT', 30);
     if (response.status === 404) throw new AIError(503, 'The selected AI model is unavailable. No replacement was used.', 'MODEL_UNAVAILABLE');
     throw new AIError(502, 'The AI provider could not complete the request. Retry manually or upload an image.', 'PROVIDER_FAILED');
