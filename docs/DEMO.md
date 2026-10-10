@@ -21,3 +21,11 @@ Aneesha has GitHub write access. Work on a new feature branch, preserve private 
 ## Recovery
 
 Original illustrated studio/gallery, bracelet/ring artwork and a compact verified generated apple work without AI. Keep exported demo ZIP on the presenting phone and a recording/screenshots after device checks. Desktop notes do not automatically appear on the phone. Loading the hosted page requires network; no offline claim. Apartment photos stay local unless specific publishing approval is given.
+
+## Private apartment collection
+
+The desktop Codex browser contains Apartment - 9-photo tour, nine rooms and 16 directed circular connections. Connections are initial manual placements at visible doorways, not an automatically reconstructed floor plan. Photos 5 and 6 are identical; both are included.
+
+To reposition: Edit palace > Move hotspots > grab a circle or image and drag. Release saves its position. Tap while moving to edit the connection destination or image; expand Advanced positioning, enter yaw/pitch (negative numbers supported), Apply, then Save. Done moving restores normal circle navigation.
+
+For another browser/phone, transfer private-media/apartment/Apartment-9-photo-tour.zip privately and choose Palaces > Restore ZIP. The photos and edits remain on that device. The public URL alone does not transfer desktop photos. Source photos, prepared ZIP and screenshot remain ignored by Git/Vercel.
