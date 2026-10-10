@@ -23,7 +23,7 @@ Integration owner: Codex. Shared contracts, dependency changes and lockfile are 
 | codex/demo-regression | Codex | Placement/lifecycle/save-status regression | Verified release integrated into main; all feature branches pushed |
 | codex/draggable-hotspots | Codex | Explicit move mode for circles/images, save on drop, manual coordinates | 126 tests/typecheck/lint/build passed; deployed and desktop/390�844 browser checks passed |
 
-Apartment collection: nine supplied panoramas restored locally as a separate palace with 16 editable circular connections. ZIP and connection coordinates remain in ignored private-media. Photos 5 and 6 are identical and both are retained. No apartment assets are published. Initial doorway placement is approximate; the owner can drag circles or edit their coordinates/destination.
+Apartment collection: nine supplied panoramas restored locally as a separate palace with 16 editable circular connections. Original ZIP and connection coordinates remain in ignored private-media; an owner-approved copy is shared in team-assets/apartment in this private repository. Photos 5 and 6 are identical and both are retained. No apartment assets are publicly deployed. Initial doorway placement is approximate; the owner can drag circles or edit their coordinates/destination.
 
 ## Collaboration
 
@@ -50,3 +50,9 @@ The nine supplied apartment Photo_*.jpg files are all 1280 x 640. SHA-256 compar
 - codex/high-resolution-panoramas: supports bounded 11904 x 5952 originals (80 million pixel limit; 32 MB encoded limit unchanged). Import/storage/backup subset: 39 tests pass. Full checks required again before integration.
 - Kuula reference now open at https://kuula.co/edit/n1/collection/7Tshf ; photo sidebar inspected read-only. User supplied five screenshots confirming the sidebar and thumbnail reference. Keep panorama visible alongside a context-specific editor and separate room navigation. No Kuula content saved or modified.
 - All feature branches are pushed and integrated into main. Production deployment dpl_ANE7wC9b26ywr3st7oqpYfzBcqyF is READY and aliased to https://mind-palace-360-v1.vercel.app . Existing local apartment data survived the release; all nine thumbnails and one panorama canvas rendered.
+
+## Private teammate apartment bundle - October 10, 2026
+
+- codex/team-apartment-assets: owner explicitly requested sharing the nine apartment photos in GitHub. Repository privacy and aneeshaa1 write access verified. Exact source copies plus the ready-to-restore nine-room, 16-connection ZIP are in team-assets/apartment. This is a narrow exception to the prior no-photo-commits policy.
+- The entire team-assets directory is excluded from Vercel and is outside public/. No API key or demo code is included. The app still uses browser-local persistence; each teammate restores the ZIP in their own browser. No cloud synchronization is implied.
+- Verification passed: SHA-256 matches all nine source copies and all nine archived originals; ZIP has nine rooms, 16 connections and zero personal notes. Staged files match the exact allowlist. Private-media and env files remain ignored; build traces contain neither private-media nor team-assets. Typecheck, lint, all 133 tests (12 files), and production build passed.

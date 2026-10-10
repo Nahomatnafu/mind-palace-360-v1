@@ -6,3 +6,6 @@ private-media/
 docs/
 test-results/
 playwright-report/
+
+# Private collaboration photos must never enter a public deployment.
+team-assets/

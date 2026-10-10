@@ -12,3 +12,6 @@ private-media/
 
 .vercel
 .env*
+
+# Owner-approved private collaboration bundle only.
+!team-assets/apartment/Apartment-9-photo-tour.zip

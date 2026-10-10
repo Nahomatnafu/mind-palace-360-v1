@@ -10,4 +10,4 @@ The finalized master prompt is the specification. Image-first creation, browser 
 
 App models are engine-independent. Repository saves a whole palace document with optional asset additions transactionally. Asset bytes remain Blobs. Fixed-screen-size memory markers are the default.
 
-Networking and physical devices may block delivery checks; continue local development and report limits accurately. Private photos never enter public assets or Git history.
+Networking and physical devices may block delivery checks; continue local development and report limits accurately. Private photos never enter public assets. The owner-approved nine-photo collaboration bundle may enter this private repository only; see AGENTS.md and team-assets/apartment/README.md.
