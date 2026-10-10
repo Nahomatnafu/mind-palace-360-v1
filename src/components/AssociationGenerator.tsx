@@ -44,7 +44,7 @@ export function AssociationGenerator({ onImage, disabled = false }: AssociationG
     } catch (failure) { if (operation === epoch.current && mounted.current && !aborter.signal.aborted) setError(failure instanceof Error ? failure.message : 'AI could not complete this request. Retry manually.'); }
     finally { if (operation === epoch.current && mounted.current) { active.current = false; setPhase('idle'); } }
   }
-  async function useImage() {
+  async function applyImage() {
     if (!generated || active.current || disabled) return;
     active.current = true; setPhase('adding'); setError('');
     try { await onImage(generated.asset,title.trim() || generated.title,note.trim()); if (mounted.current) { setGenerated(undefined); setNotice('Image added to the memory editor. Place it in your room and save.'); } }
@@ -72,7 +72,7 @@ export function AssociationGenerator({ onImage, disabled = false }: AssociationG
       {/* A temporary, validated image Blob; rendering needs no HTML content. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={generated.url} alt={generated.title} width={144} height={144}/>
-      <button type="button" disabled={busy || disabled} onClick={()=>void useImage()}>{phase === 'adding' ? 'Adding image…' : 'Use image'}</button>
+      <button type="button" disabled={busy || disabled} onClick={()=>void applyImage()}>{phase === 'adding' ? 'Adding image…' : 'Use image'}</button>
     </div>}
     {busy && <p role="status">{phase === 'generating' ? 'Generating may take a minute or two. Keep this panel open.' : phase === 'suggesting' ? 'Looking for memorable visual associations.' : 'Preparing your memory image.'}</p>}
     {notice && <p role="status" className={styles.hint}>{notice}</p>}
