@@ -34,3 +34,15 @@ Teammate work is ready to partition: create a three-minute Creative-track pitch 
 ## Dependencies and limits
 
 Original apartment folder is available; one image was tested locally. No private media is deployed. Physical sensor tests and an actual117/118-item learning experiment remain user-owned. Initial isolated-runtime network/keyring failures resolved by authorized normal terminal calls; disk exhaustion resolved by removing only rebuild caches and disabling webpack disk cache. No further sign-ins are currently needed.
+
+## October 10 editor and image-quality revision
+
+Owner: Codex (shared contracts unchanged, no new dependencies).
+
+- codex/image-quality: preserve validated panorama JPEG bytes instead of re-encoding/downscaling. Import regression passes.
+- codex/relatable-associations: prefer familiar literal objects; direct Gold example is bracelet/necklace/bar. Protected-handler regression passes; live content review pending.
+- codex/transparent-cutouts: require endpoint alpha support, explicit PNG output, visible subject and a transparent border. Reject opaque/blank/translucent-only outputs without automatic paid retry. Fifteen image tests pass; live generation pending.
+- codex/replace-room-photo: replace a panorama without changing room IDs, camera, memory/link positions; display dimensions. Typecheck passes; browser/build validation pending.
+- codex/memory-editor-redesign: pending user-provided Kuula editor reference. Target one shared memory title/note, optional suggestions, direct picture description, coherent sidebar editing rather than nested forms.
+
+The nine supplied apartment Photo_*.jpg files are all 1280 x 640. SHA-256 comparison confirms the private tour ZIP contains all nine exact originals; that ZIP did not reduce them. Older D:/OpenView Homes_First AD_Batch files are 3840 x 1920, but are not assumed to correspond to these apartment views. Higher-resolution exports of the same apartment photos are needed to recover actual detail. Do not upscale and describe it as restored detail. No cloud account is required for byte-preserving local import. Browser GPU texture limits still apply.
