@@ -1,0 +1,3 @@
+import type { Asset, Palace } from '../domain/model';
+export function fixtureAsset(id='image'):Asset { return {id,blob:new Blob([Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aR/gAAAAASUVORK5CYII='),c=>c.charCodeAt(0))],{type:'image/png'}),mimeType:'image/png',width:1,height:1,kind:'memory'}; }
+export function fixturePalace(id='palace'):Palace {return {schemaVersion:1,id,title:'Test palace',startRoomId:'room',rooms:[{id:'room',title:'Room',demoSrc:'/demo/room.jpg',initialView:{yaw:-10,pitch:0,zoom:50}}],memories:[{id:'memory',roomId:'room',title:'Memory',note:'<b>plain text</b>',imageAssetId:'image',yaw:-15,pitch:-20,size:32,provenance:'upload'}],links:[],updatedAt:'2026-10-10T10:00:00.000Z'};}
