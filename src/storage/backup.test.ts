@@ -1,9 +1,16 @@
 import 'fake-indexeddb/auto';
+import { readFile } from 'node:fs/promises';
+import { rasterInfo, validateAsset } from './validation';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { LocalPalaceRepository } from './repository';
 import { exportPalace, importPalace, MAX_ARCHIVE_BYTES } from './backup';
 import { fixtureAsset, fixturePalace } from './fixtures';
+async function demoBytes(path:string) {
+  const locations=[new URL('../../public'+path,import.meta.url),new URL('../../../../mind-palace-360-v2/public'+path,import.meta.url)];
+  for(const location of locations) { try{return await readFile(location);}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;} }
+  throw new Error('Approved procedural demo fixture is missing.');
+}
 const stores:LocalPalaceRepository[]=[];
 function store(){const result=new LocalPalaceRepository('backup-'+crypto.randomUUID());stores.push(result);return result;}
 afterEach(async()=>{vi.unstubAllGlobals();for(const s of stores.splice(0)) await s.db.delete();});
@@ -22,6 +29,15 @@ describe('validated palace ZIP backups',()=>{
     expect(imported.links[0].targetRoomId).toBe(imported.rooms[1].id);expect(imported.startRoomId).toBe(imported.rooms[0].id);expect(imported.memories[0].note).toBe('<b>plain text</b>');
     expect(imported.memories[0].imageAssetId).not.toBe(a.id);expect(await (await s.asset(imported.memories[0].imageAssetId!))!.blob.arrayBuffer()).toEqual(await a.blob.arrayBuffer());expect(await s.list()).toHaveLength(2);
   });
+  it('exports the actual integrated JPEG/PNG demo and preserves its restored assets independently',async()=>{
+    const s=store(),p=fixturePalace();delete p.memories[0].imageAssetId;p.memories[0].demoSrc='/demo/bracelet.png';p.rooms[0].demoSrc='/demo/studio.jpg';p.rooms.push({...p.rooms[0],id:'gallery',demoSrc:'/demo/gallery.jpg'});p.memories.push({...p.memories[0],id:'circle',roomId:'gallery',demoSrc:'/demo/blue-ring.png'});p.links=[{id:'next',roomId:'room',targetRoomId:'gallery',yaw:0,pitch:0,label:'Next'}];
+    vi.stubGlobal('fetch',vi.fn(async(src:string)=>{const bytes=await demoBytes(src);return new Response(bytes,{status:200});}));
+    await s.save(p);const blob=await exportPalace(p,s),first=await importPalace(blob,s),second=await importPalace(blob,s);
+    expect(first.rooms[0].demoSrc).toBeUndefined();expect(first.memories[0].demoSrc).toBeUndefined();expect(first.links[0].targetRoomId).toBe(first.rooms[1].id);
+    const image=await s.asset(first.rooms[0].panoramaAssetId!);expect(image!.mimeType).toBe('image/jpeg');expect(rasterInfo(new Uint8Array(await image!.blob.arrayBuffer()))).toEqual({mimeType:'image/jpeg',width:2048,height:1024});
+    await s.remove(first.id);expect(await s.asset(first.rooms[0].panoramaAssetId!)).toBeUndefined();expect(await s.asset(second.rooms[0].panoramaAssetId!)).toBeDefined();expect(await s.load(p.id)).toEqual(p);
+  });
+  it('accepts the import layer tolerance for nearly 2:1 panoramas',async()=>{const bytes=await demoBytes('/demo/studio.jpg');const info=rasterInfo(bytes);for(let at=2;at<bytes.length;){if(bytes[at++]!==255)break;const marker=bytes[at++],length=bytes.readUInt16BE(at);if(marker===192||marker===194){bytes.writeUInt16BE(info.height+1,at+3);break;}at+=length;}await expect(validateAsset({id:'near-ratio',blob:new Blob([bytes],{type:'image/jpeg'}),mimeType:'image/jpeg',width:info.width,height:info.height+1,kind:'panorama'})).resolves.toBeUndefined();});
   it('accepts a DEFLATE-compressed valid archive',async()=>{const {s,blob}=await backup(),entries=unzipSync(new Uint8Array(await blob.arrayBuffer()));const zipped=zipSync(entries,{level:6});const imported=await importPalace(new Blob([zipped.slice().buffer]),s);expect(imported.title).toBe('Test palace');expect(await s.list()).toHaveLength(2);});
   it('rejects missing image bytes without persisting the import',async()=>{const {s,blob}=await backup(),entries=unzipSync(new Uint8Array(await blob.arrayBuffer()));const manifest=JSON.parse(strFromU8(entries['manifest.json']));manifest.palace=fixturePalace();delete manifest.palace.rooms[0].demoSrc;manifest.palace.rooms[0].panoramaAssetId='missing';entries['manifest.json']=strToU8(JSON.stringify(manifest));await expect(importPalace(archive(entries),s)).rejects.toThrow('missing');expect(await s.list()).toHaveLength(1);});
   it('rejects traversal and extra paths before writes',async()=>{const {s,blob}=await backup(),entries=unzipSync(new Uint8Array(await blob.arrayBuffer()));entries['../secret']=strToU8('bad');await expect(importPalace(archive(entries),s)).rejects.toThrow('path');expect(await s.list()).toHaveLength(1);});
