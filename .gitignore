@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.env*
+!.env.example
+.vercel/
+.preview-runtime/
+playwright-report/
+test-results/
+*.tsbuildinfo
+private-media/
+*.zip
