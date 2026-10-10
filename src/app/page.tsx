@@ -1,2 +1,2 @@
-import ViewerPreview from '@/components/ViewerPreview';
-export default function Home() { return <ViewerPreview/>; }
+import Workspace from '@/components/Workspace';
+export default function Home() { return <Workspace/>; }

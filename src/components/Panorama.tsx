@@ -1,5 +1,4 @@
 'use client';
-/* eslint-disable react-hooks/set-state-in-effect -- Reflect asynchronous external viewer loading in the interface. */
 import { useEffect, useRef, useState } from 'react';
 import type { Camera } from '@/domain/model';
 import type { ViewerAdapter, ViewerMarker } from '@/viewer/adapter';
