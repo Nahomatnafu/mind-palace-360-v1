@@ -45,11 +45,16 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
   };
   const pointerUp=(event:PointerEvent)=>{
     if(drag&&event.pointerId!==drag.pointerId)return;
+    if(drag)pointerMove(event);
     pointer=null;if(!drag)return;
     event.stopImmediatePropagation();const completed=drag;drag=null;
     if(completed.moved){suppressed={id:completed.item.id,until:Date.now()+400};callbacks.move?.(completed.item.id,completed.point.yaw,completed.point.pitch);}
   };
   const pointerCancel=(event:PointerEvent)=>{if(drag&&event.pointerId===drag.pointerId)cancelDrag();};
+  // The engine also listens for legacy mouse/touch events. Block those explicitly
+  // so a marker gesture cannot start a simultaneous panorama pan.
+  const legacyStart=(event:Event)=>{if(editing&&event.target instanceof Element&&event.target.closest('[data-marker-id]')){event.preventDefault();event.stopImmediatePropagation();}};
+  const legacyMove=(event:Event)=>{if(drag){event.preventDefault();event.stopImmediatePropagation();}};
   const click=(event:MouseEvent)=>{
     if(event.button!==0||movedPointer){movedPointer=false;return;}
     if(event.target instanceof Element&&event.target.closest('button,.psv-marker'))return;
@@ -59,7 +64,11 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
   const moved = () => callbacks.camera?.(camera());
   container.addEventListener('click',click);
   container.addEventListener('pointerdown',pointerDown,true);
+  container.addEventListener('mousedown',legacyStart,true);
+  container.addEventListener('touchstart',legacyStart,{capture:true,passive:false});
   window.addEventListener('pointermove',pointerMove,{capture:true,passive:false});
+  window.addEventListener('mousemove',legacyMove,{capture:true,passive:false});
+  window.addEventListener('touchmove',legacyMove,{capture:true,passive:false});
   window.addEventListener('pointerup',pointerUp,true);
   window.addEventListener('pointercancel',pointerCancel,true);
   window.addEventListener('blur',cancelDrag);
@@ -92,6 +101,6 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
     lookAt(position){if(!disposed){viewer.rotate({yaw:toRadians(position.yaw),pitch:toRadians(position.pitch)});viewer.zoom(position.zoom);}},
     zoom(delta){viewer.zoom(Math.max(0,Math.min(100,viewer.getZoomLevel()+delta)));},
     editMarkers(enabled){editing=enabled;container.classList.toggle('editing-markers',enabled);if(!enabled)cancelDrag();},
-    destroy(){cancelDrag();disposed=true;request++;container.removeEventListener('click',click);container.removeEventListener('pointerdown',pointerDown,true);window.removeEventListener('pointermove',pointerMove,true);window.removeEventListener('pointerup',pointerUp,true);window.removeEventListener('pointercancel',pointerCancel,true);window.removeEventListener('blur',cancelDrag);viewer.removeEventListener(events.PositionUpdatedEvent.type,moved);viewer.destroy();},
+    destroy(){cancelDrag();disposed=true;request++;container.removeEventListener('click',click);container.removeEventListener('pointerdown',pointerDown,true);container.removeEventListener('mousedown',legacyStart,true);container.removeEventListener('touchstart',legacyStart,true);window.removeEventListener('pointermove',pointerMove,true);window.removeEventListener('mousemove',legacyMove,true);window.removeEventListener('touchmove',legacyMove,true);window.removeEventListener('pointerup',pointerUp,true);window.removeEventListener('pointercancel',pointerCancel,true);window.removeEventListener('blur',cancelDrag);viewer.removeEventListener(events.PositionUpdatedEvent.type,moved);viewer.destroy();},
   };
 }
