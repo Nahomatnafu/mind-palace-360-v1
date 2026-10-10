@@ -30,3 +30,25 @@ Physical mobile storage/low-quota behavior: NOT RUN; requires real devices.
 - BLOCKED: next build --webpack reached optimized production compilation, then produced no further output and was terminated after 30 seconds. Integration owner must rerun these.
 - Environmental limitation: combined parallel Vitest initially hit a Vite temporary SSR cache ENOENT. Isolated suite runs pass. Vitest reports successful exit code but a 10-second Vite server close warning.
 - NOT RUN: Real Android/iPhone IndexedDB behavior, low-device-storage conditions, and large-device-memory pressure.
+
+## Hardening test plan
+
+- Round-trip the integrated procedural JPEG/PNG demo via real fixtures and verify JPEG dimensions.
+- Preserve original palace and images when deleting its restored copy.
+- Allow retrying identical immutable assets (including concurrent duplicate saves), reject replacement bytes.
+- Accept the same near-2:1 panorama tolerance as the import layer.
+- Verify browser decode failure closes temporary resources and aborts saving.
+- No model contract changes: existing 100-room / 1000-memory bounds remain.
+
+## Hardening results
+
+- PASS: 13 repository tests, including concurrent identical-asset retry, legacy hashless retry, changed-byte rejection, decoder failure, bitmap close, and Image fallback URL revocation.
+- PASS: 12 backup tests, including actual integrated public/demo JPEG/PNG export/restore, fresh IDs, independent restored copies, and near-2:1 import tolerance. Fixture lookup supports both the feature worktree and integrated repository.
+- PASS: Actual studio.jpg/gallery.jpg decoded through Sharp to 2048x1024 RGB; bracelet.png/blue-ring.png decoded to 256x256 RGBA. This checks file decoding, not mobile browser sensors/rendering.
+- PASS: tsc --noEmit --incremental false after hardening.
+- Initial rerun was BLOCKED by ENOSPC. Removed only this worktree's verified .next build cache, recovering about 12.5 MB, then tests/typecheck passed.
+- Lint/build remain pending integration checks: prior standard commands stalled; avoid recreating build caches until disk capacity is resolved. Physical Android/iPhone decode/storage checks remain NOT RUN.
+
+Internal asset SHA-256 metadata allows identical retries while rejecting replacements using an existing ID. This changes no public model or IndexedDB index. Legacy assets without a hash are compared using Dexie.waitFor to keep the transaction alive. Browser fallback decodes through Image when createImageBitmap is unavailable.
+
+Integration findings sent to the owner: Workspace must distinguish save commit from list-refresh failure and guard mutation entry synchronously. Repository whole-document writes are last-writer-wins; multi-tab concurrent editing is not synchronized.

@@ -9,3 +9,6 @@ test-results/
 *.tsbuildinfo
 private-media/
 *.zip
+
+.vercel
+.env*
