@@ -19,3 +19,7 @@ PASS: TypeScript noEmit, ESLint ., Next production build --webpack. PASS: 12 ima
 NOT RUN: actual browser decoder/alpha rendering, physical Android/iPhone imports, touch keyboard and memory-pressure behavior. Browser APIs in the cleanup tests are mocked; these do not establish physical-device behavior.
 
 Limits: panoramas 32 MB/64 megapixels, JPEG about 2:1, max derivative edge 4096; memories 12 MB/25 megapixels and max derivative edge 768. PNG output preserves alpha when present. Original files are read only.
+
+## Signed coordinate field
+
+Branch codex/mobile-motion. CoordinateField stores string drafts, confirms via Apply/Enter, cancels via Escape, and provides a sign toggle. It does not parse on change or reset incomplete negative values. External committed value changes reset the draft. PASS: three signed-coordinate tests and combined typecheck/lint/build noted above. Physical keyboard checks remain NOT RUN. The caller must normalize yaw to [-180,180), because the field validates the inclusive min/max props supplied by the caller.
