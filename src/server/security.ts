@@ -30,7 +30,7 @@ export async function readBody(request: Request): Promise<Record<string, unknown
   catch (error) { if (error instanceof AIError) throw error; throw new AIError(400, 'Enter valid input.', 'INVALID_INPUT'); }
 }
 export function inputString(value: unknown, label: string, max: number, optional = false): string {
-  if (optional && value === undefined) return '';
+  if (optional && (value === undefined || (typeof value === 'string' && !value.trim()))) return '';
   if (typeof value !== 'string' || !value.trim() || value.trim().length > max) throw new AIError(400, label + ' must contain 1–' + max + ' characters.', 'INVALID_INPUT');
   return value.trim();
 }
