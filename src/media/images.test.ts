@@ -45,6 +45,10 @@ describe('encoded image validation',()=>{
     expect(()=>validateImage(header,'panorama',100,'image/svg+xml')).toThrow(/declared/);
     expect(()=>validateImage(header,'panorama',100,'')).not.toThrow();
   });
+  it('accepts 11904 by 5952 camera originals without permitting unbounded textures',()=>{
+    expect(()=>validateImage(readImageHeader(jpeg(11904,5952)),'panorama',15*1024*1024,'image/jpeg')).not.toThrow();
+    expect(()=>validateImage(readImageHeader(jpeg(16384,8192)),'panorama',15*1024*1024,'image/jpeg')).toThrow(/dimensions/);
+  });
   it('requires JPEG and approximately 2:1 panorama dimensions',()=>{
     expect(()=>validateImage(readImageHeader(png(2000,1000)),'panorama',100,'image/png')).toThrow(/JPEG/);
     expect(()=>validateImage(readImageHeader(jpeg(1920,1080)),'panorama',100,'image/jpeg')).toThrow(/2:1/);

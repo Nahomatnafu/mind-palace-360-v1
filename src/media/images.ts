@@ -4,7 +4,7 @@ export type ImageKind = Asset['kind'];
 export type ImageMime = 'image/jpeg' | 'image/png' | 'image/webp';
 export interface ImageHeader { mimeType: ImageMime; width: number; height: number }
 export const IMAGE_LIMITS = {
-  panorama: { bytes: 32 * 1024 * 1024, pixels: 64 * 1024 * 1024, edge: 16384, outputEdge: 16384 },
+  panorama: { bytes: 32 * 1024 * 1024, pixels: 80_000_000, edge: 16384, outputEdge: 16384 },
   memory: { bytes: 12 * 1024 * 1024, pixels: 25 * 1024 * 1024, edge: 16384, outputEdge: 768 },
 } as const;
 
