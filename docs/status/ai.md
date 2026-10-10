@@ -20,3 +20,17 @@ Limits are per Node process, shared by the demo, not a global billing cap. Two a
 ## Results
 
 Association feature: PASS 19 mocked unit tests; PASS tsc --noEmit; PASS targeted ESLint. Production build BLOCKED: remained at Creating an optimized production build with no further output for several minutes and was stopped. Tests exit 0 but Vitest reports a Vite-server close timeout. Physical devices and real paid API calls NOT RUN.
+
+
+## Image feature and final checks
+
+- PASS: 30 mocked AI tests (20 association, 10 image). Command: node <dependency-root>/vitest/vitest.mjs run src/server --maxWorkers=1 --no-file-parallelism --no-isolate.
+- PASS: node <dependency-root>/typescript/bin/tsc --noEmit.
+- PASS: node <dependency-root>/eslint/bin/eslint.js src/server src/app/api/ai.
+- BLOCKED: node <dependency-root>/next/dist/bin/next build --webpack. Both attempts stalled at optimized compilation with no additional output for several minutes; stopped. Production integration must verify the build.
+- Default-isolation test runs intermittently fail loading shared Vite SSR temp modules (ENOENT). A single reused test worker passes all 30. Exit status 0 includes a ten-second Vite shutdown warning; not hidden.
+- NOT RUN: real paid API calls, hosted endpoint checks, phone behavior.
+
+Generation verifies the exact configured model through the dedicated endpoint catalog before a paid request, pins its reported provider when present, disables fallback, and requests one image. Supports low quality, square aspect and transparent background only when advertised. Returned alpha is preserved; transparency is not fabricated. JPEG/PNG/WebP signatures and decoded formats are validated; vectors, animations, huge images and malformed output are rejected. Normalized PNG is at most 768 pixels on either side and 3 MB. Provider JSON is bounded at 12 MB, input raster at 8 MB and 16 million pixels. Timeout is 150 seconds with a 180-second route duration. Aborted requests do not return a generated image after cancellation, but cancellation is not a promise about provider billing.
+
+UI caller should send x-request-id: crypto.randomUUID() for each explicit submission/retry and retain it during a pending request. Do not silently retry paid calls. Request credentials are never included in export data. Empty optional context is accepted.
