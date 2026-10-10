@@ -75,3 +75,5 @@ Supersedes the earlier full-paid-authoring NOT RUN entry for the new flow. No de
 | Physical Android/iPhone | NOT RUN | Real touch keyboard, pinch, sensor permission/rotation still need the user's devices. |
 
 Two explicit live generations in this revision (one endpoint test and one full UI flow); no automatic retry or bulk generation. Private apartment images and test outputs remain ignored and excluded from deployment.
+
+Production release: dpl_ANE7wC9b26ywr3st7oqpYfzBcqyF READY; stable alias home 200, AI without code 401. Live browser retained the existing nine-room apartment tour and all nine real thumbnails; one canvas rendered. Desktop screenshot verified at 1280px; mobile bottom sheet screenshot verified at 390px with no horizontal overflow. Screenshots saved privately under private-media/quality-check, excluded from Git/deployment. No apartment images were published.
