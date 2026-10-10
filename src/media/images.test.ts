@@ -80,6 +80,15 @@ describe('browser import failure and resource handling (mocked browser APIs)',()
     await expect(importImage(file(new TextEncoder().encode('<svg/>'),'image/jpeg'),'memory')).rejects.toThrow();
     expect(decode).not.toHaveBeenCalled();
   });
+  it('preserves a panorama byte for byte without canvas recompression or resizing',async()=>{
+    const source=jpeg(8192,4096), close=vi.fn(), createElement=vi.fn();
+    vi.stubGlobal('createImageBitmap',vi.fn().mockResolvedValue({width:8192,height:4096,close}));
+    vi.stubGlobal('document',{createElement});
+    const result=await importImage(file(source,'image/jpeg'),'panorama');
+    expect(result).toMatchObject({width:8192,height:4096,mimeType:'image/jpeg'});
+    expect(new Uint8Array(await result.blob.arrayBuffer())).toEqual(source);
+    expect(createElement).not.toHaveBeenCalled();expect(close).toHaveBeenCalledOnce();
+  });
   it('closes a decoded bitmap when its dimensions violate the header',async()=>{
     const close=vi.fn();
     vi.stubGlobal('createImageBitmap',vi.fn().mockResolvedValue({width:100,height:100,close}));
