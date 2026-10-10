@@ -2,7 +2,7 @@
 
 Read docs/PLAN.md and your assignment in docs/TASKS.md before edits. The finalized master prompt controls scope; the older prototype plan is reference only.
 
-- Preserve original photos. Never commit or deploy private-media, property photos, backups, or secrets.
+- Preserve original photos. Never commit or deploy private-media or secrets. The owner explicitly authorized only the nine Photo_*.jpg files and Apartment-9-photo-tour.zip in team-assets/apartment for this private GitHub repository on October 10, 2026. Keep team-assets excluded from Vercel, outside public/, and never import it into app code. Other property photos and backups remain excluded. Do not make this repository public while it contains private property photos.
 - Use codex/ feature branches and separate worktrees for concurrent code changes.
 - Integration owner controls shared models, repository interfaces, dependencies, and lockfile.
 - Application data uses degrees: yaw [-180,180), pitch [-90,90]; engine units belong only in the adapter.
