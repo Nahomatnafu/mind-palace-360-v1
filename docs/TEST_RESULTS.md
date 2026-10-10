@@ -77,3 +77,11 @@ Supersedes the earlier full-paid-authoring NOT RUN entry for the new flow. No de
 Two explicit live generations in this revision (one endpoint test and one full UI flow); no automatic retry or bulk generation. Private apartment images and test outputs remain ignored and excluded from deployment.
 
 Production release: dpl_ANE7wC9b26ywr3st7oqpYfzBcqyF READY; stable alias home 200, AI without code 401. Live browser retained the existing nine-room apartment tour and all nine real thumbnails; one canvas rendered. Desktop screenshot verified at 1280px; mobile bottom sheet screenshot verified at 390px with no horizontal overflow. Screenshots saved privately under private-media/quality-check, excluded from Git/deployment. No apartment images were published.
+
+## Studio polish, larger markers and AI wait revision - October 10
+
+- Automated: typecheck and lint passed; all 137 tests in 12 files passed before final branding metadata. New coverage: six image attempts/minute and exact expiry/retry-after, distinct provider 402 without sensitive body leaks, successful-only capability cache reuse/expiry without paid retries, 128px validation and ZIP roundtrip, one-decimal negative coordinate formatting.
+- Desktop browser: 128px slider limit, actual marker measured 128 x 128 CSS px before/after zoom, Save/reload preserved 128 and coordinate; -38.13803030033 displayed as -38.1 in connection editor. New logo/fonts/chevrons visually inspected; no browser console errors.
+- Phone emulation 390 x 844: document and scroll width both 390; panorama, bottom sheet, footer buttons and filmstrip visible. Intermediate -0. remained editable; -12.56 applied and displayed as -12.6. Physical device checks remain NOT RUN.
+- One explicit real image generation succeeded: plain gold bracelet with verified transparency, request returned 200 in 9.1 seconds (8.6 seconds application work). This is a sample timing, not a guaranteed latency or controlled before/after benchmark. Elapsed status and save flow verified. No automatic retry or bulk generation.
+- Production build passed. Release verification pending.
