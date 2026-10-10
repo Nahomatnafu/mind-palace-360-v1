@@ -1,0 +1,8 @@
+private-media/
+.env*
+!.env.example
+.preview-runtime/
+*.zip
+docs/
+test-results/
+playwright-report/
