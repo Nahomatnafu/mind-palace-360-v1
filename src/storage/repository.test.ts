@@ -1,10 +1,10 @@
 import 'fake-indexeddb/auto';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LocalPalaceRepository } from './repository';
 const stores:LocalPalaceRepository[]=[];
 import { fixtureAsset, fixturePalace } from './fixtures';
 function store(){const result=new LocalPalaceRepository('test-'+crypto.randomUUID());stores.push(result);return result;}
-afterEach(async()=>{for(const s of stores.splice(0)) await s.db.delete();});
+afterEach(async()=>{vi.unstubAllGlobals();for(const s of stores.splice(0)) await s.db.delete();});
 describe('transactional palace repository',()=>{
   it('saves and loads Blob bytes and lists newest titles',async()=>{const s=store(),p=fixturePalace(),a=fixtureAsset();await s.save(p,[a]);expect(await s.load(p.id)).toEqual(p);expect(await s.list()).toEqual([{id:p.id,title:p.title,updatedAt:p.updatedAt}]);expect(await (await s.asset(a.id))!.blob.arrayBuffer()).toEqual(await a.blob.arrayBuffer());});
   it('rejects missing referenced assets without saving a document',async()=>{const s=store();await expect(s.save(fixturePalace())).rejects.toThrow('missing');expect(await s.list()).toEqual([]);});
@@ -13,5 +13,10 @@ describe('transactional palace repository',()=>{
   it('keeps assets shared across palaces and removes them after the last reference',async()=>{const s=store(),p=fixturePalace();await s.save(p,[fixtureAsset()]);await s.save(fixturePalace('second'));await s.remove(p.id);expect(await s.asset('image')).toBeDefined();await s.remove('second');expect(await s.asset('image')).toBeUndefined();});
   it('cleans old assets on a rewrite but never unrelated assets',async()=>{const s=store(),p=fixturePalace();await s.save(p,[fixtureAsset()]);await s.db.assets.put(fixtureAsset('unrelated'));await s.save({...p,memories:[]});expect(await s.asset('image')).toBeUndefined();expect(await s.asset('unrelated')).toBeDefined();});
   it('rejects SVG disguised as PNG and mismatched dimensions',async()=>{const s=store(),a=fixtureAsset();await expect(s.save(fixturePalace(),[{...a,blob:new Blob(['<svg/>'],{type:'image/png'})}])).rejects.toThrow('supported');await expect(s.save(fixturePalace(),[{...a,width:2}])).rejects.toThrow('metadata');});
-  it('does not silently replace immutable asset IDs',async()=>{const s=store();await s.save(fixturePalace(),[fixtureAsset()]);await expect(s.save(fixturePalace(),[fixtureAsset()])).rejects.toThrow('already exists');});
+  it('rejects reuse of immutable asset IDs with changed bytes',async()=>{const s=store(),original=fixtureAsset();await s.save(fixturePalace(),[original]);const bytes=new Uint8Array(await original.blob.arrayBuffer());bytes[50]^=1;await expect(s.save(fixturePalace(),[{...original,blob:new Blob([bytes],{type:'image/png'})}])).rejects.toThrow('already exists');expect(await (await s.asset(original.id))!.blob.arrayBuffer()).toEqual(await original.blob.arrayBuffer());});
+  it('allows concurrent duplicate saves of identical asset bytes',async()=>{const s=store(),p=fixturePalace(),a=fixtureAsset();await Promise.all([s.save(p,[a]),s.save(p,[a])]);expect(await s.list()).toHaveLength(1);expect(await s.db.assets.count()).toBe(1);});
+  it('allows retrying an identical legacy asset without a stored checksum',async()=>{const s=store(),p=fixturePalace(),a=fixtureAsset();await s.db.assets.put(a);await s.save(p,[a]);expect(await s.load(p.id)).toEqual(p);});
+  it('aborts saving if the browser cannot decode the image',async()=>{const s=store();vi.stubGlobal('createImageBitmap',vi.fn().mockRejectedValue(new Error('Decode failed')));await expect(s.save(fixturePalace(),[fixtureAsset()])).rejects.toThrow('Decode failed');expect(await s.list()).toEqual([]);expect(await s.db.assets.count()).toBe(0);});
+  it('closes the bitmap after a decoded dimension mismatch',async()=>{const s=store(),close=vi.fn();vi.stubGlobal('createImageBitmap',vi.fn().mockResolvedValue({width:2,height:1,close}));await expect(s.save(fixturePalace(),[fixtureAsset()])).rejects.toThrow('dimensions');expect(close).toHaveBeenCalledOnce();});
+  it('revokes the fallback decoder object URL even on failure',async()=>{const s=store();vi.stubGlobal('createImageBitmap',undefined);const revoke=vi.spyOn(URL,'revokeObjectURL');vi.stubGlobal('Image',class {src='';async decode(){throw new Error('Fallback decode failed');}});await expect(s.save(fixturePalace(),[fixtureAsset()])).rejects.toThrow('Fallback decode failed');expect(revoke).toHaveBeenCalledOnce();revoke.mockRestore();});
 });
