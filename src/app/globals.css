@@ -9,3 +9,5 @@
 .motion-message{position:absolute;right:20px;bottom:24px;max-width:min(300px,45%);padding:10px 14px;background:#172c23da;color:#d4ebd9;border-radius:10px;font-size:11px;pointer-events:none}@media(max-width:760px){.motion-message{right:12px;bottom:115px;max-width:calc(100% - 24px)}.stage-label{max-width:calc(100% - 24px)}}
 
 @media(max-width:760px){.topbar button,.stage-tools button,.editor-panel button:not(.close-button){min-height:44px}.stage-tools button{font-size:11px;padding:10px}.placement-banner{top:120px}.close-button{min-height:44px;min-width:44px}}
+
+.editing-markers .palace-marker{cursor:grab;touch-action:none;user-select:none}.editing-markers .palace-marker:active{cursor:grabbing}.hotspot-help{position:absolute;top:118px;left:50%;transform:translateX(-50%);max-width:90%;padding:10px 16px;background:#f1f4ddee;color:#203728;border-radius:10px;font-size:12px;pointer-events:none;z-index:3}@media(max-width:700px){.hotspot-help{top:158px;width:85%;font-size:11px}}

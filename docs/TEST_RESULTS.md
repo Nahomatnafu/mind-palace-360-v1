@@ -44,3 +44,9 @@ Initial isolated network/keyring failures, sandbox child-build EPERM and disk EN
 Remaining manual checklist: docs/DEMO.md. Temporary illustrative regression data belongs to local test origins; apartment bytes remain local. Release URL: https://mind-palace-360-v1.vercel.app .
 
 Additional two-room hosted import attempt: NOT VERIFIED. The computer-use file-chooser operation stalled and reset the tool. Prior local panorama imports passed; this attempt is not a passing check.
+
+## Draggable hotspots and private apartment tour (2026-10-10)
+
+Typecheck, lint, 124 tests (12 files), and production build passed. Seven new drag regressions cover image/link projection, tap threshold, click suppression, view mode, cancelled touch, disabled editing/disposal, another finger and invalid projections.
+
+Prepared private ZIP: nine 1280×640 JPEG panoramas, 16 directed circular connections, 1,328,448 bytes. Manifest schema/checksums verified; original input hashes unchanged. Photos 5 and 6 are identical and retained. Restored as a separate apartment palace in the stable HTTPS desktop origin. All nine rooms rendered with one canvas and no error text; front-door connection opened the entry. Dragging release browser checks are pending deployment. Physical Android/iPhone dragging remains NOT RUN.

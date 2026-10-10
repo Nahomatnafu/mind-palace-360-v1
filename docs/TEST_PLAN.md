@@ -19,3 +19,12 @@ Every result must be PASS, FAIL, BLOCKED, or NOT RUN, with command, environment,
 | Delivery | Secret/private-file exclusion | Stable HTTPS, QR, teammate deployment, saved demo backup |
 
 Physical sensor tests remain NOT RUN until real devices report results. Browser emulation alone is insufficient. Keep paid live API tests minimal; use mocks for failures.
+# Dragging hotspots
+
+- Move hotspots mode: drag both a room circle and an image. Preview follows the pointer; save only on drop. A drag must not navigate, place a second marker, or pan the camera.
+- A tap and tiny movement still select. View mode continues normal navigation and panorama panning.
+- Signed projected positions: negative yaw and positive/negative pitch; manual '-' drafts and Apply continue to work.
+- Pointer cancellation, other fingers, disabling editing, switching rooms, blur and disposal cancel safely. No write for a cancelled drag.
+- Persistence error remains visible and restores the last committed marker. Reload confirms a successful drop.
+- Import prepared apartment ZIP: nine rooms, 16 valid directed connections, original photos unchanged, private files excluded from Git/deployment. Test destination selection and all nine room renders.
+- Physical Android/iPhone touch dragging remains a required device check.
