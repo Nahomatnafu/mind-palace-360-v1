@@ -15,20 +15,25 @@ export function toggleCoordinateSign(draft: string): string {
   return draft.startsWith('-') ? draft.slice(1) : '-' + draft;
 }
 
+export function formatCoordinate(value: number): string {
+  const rounded = Number(value.toFixed(1));
+  return (Object.is(rounded, -0) ? 0 : rounded).toFixed(1);
+}
+
 /** The key resets a draft only when its committed external value changes. */
 export default function CoordinateField(props: CoordinateFieldProps) {
   return <CoordinateDraftField key={props.value} {...props} />;
 }
 
 function CoordinateDraftField({label,value,min,max,onCommit}: CoordinateFieldProps) {
-  const [draft,setDraft] = useState(String(value));
+  const [draft,setDraft] = useState(formatCoordinate(value));
   const [error,setError] = useState('');
   const id = useId();
   const apply = () => {
     try {
       const parsed = coordinateDraft(draft,min,max);
       onCommit(parsed);
-      setDraft(String(parsed));
+      setDraft(formatCoordinate(parsed));
       setError('');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Enter a valid coordinate.');
@@ -44,7 +49,7 @@ function CoordinateDraftField({label,value,min,max,onCommit}: CoordinateFieldPro
           onChange={event=>{setDraft(event.target.value);setError('');}}
           onKeyDown={event=>{
             if (event.key==='Enter') {event.preventDefault();apply();}
-            if (event.key==='Escape') {setDraft(String(value));setError('');}
+            if (event.key==='Escape') {setDraft(formatCoordinate(value));setError('');}
           }} />
         <button type="button" aria-label={'Change sign of '+label} title="Change sign"
           onClick={()=>{setDraft(toggleCoordinateSign(draft));setError('');}}>±</button>
