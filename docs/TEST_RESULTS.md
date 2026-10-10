@@ -47,6 +47,8 @@ Additional two-room hosted import attempt: NOT VERIFIED. The computer-use file-c
 
 ## Draggable hotspots and private apartment tour (2026-10-10)
 
-Typecheck, lint, 124 tests (12 files), and production build passed. Seven new drag regressions cover image/link projection, tap threshold, click suppression, view mode, cancelled touch, disabled editing/disposal, another finger and invalid projections.
+Typecheck, lint, 126 tests (12 files), and production build passed. Nine new drag regressions cover image/link projection, tap threshold, click suppression, view mode, cancelled touch, disabled editing/disposal, other fingers, invalid projections, legacy mouse/touch isolation and the final release position.
 
-Prepared private ZIP: nine 1280×640 JPEG panoramas, 16 directed circular connections, 1,328,448 bytes. Manifest schema/checksums verified; original input hashes unchanged. Photos 5 and 6 are identical and retained. Restored as a separate apartment palace in the stable HTTPS desktop origin. All nine rooms rendered with one canvas and no error text; front-door connection opened the entry. Dragging release browser checks are pending deployment. Physical Android/iPhone dragging remains NOT RUN.
+Prepared private ZIP: nine 1280x640 JPEG panoramas, 16 directed circular connections, 1,328,448 bytes. Schema/checksums verified; original input hashes unchanged. Photos 5 and 6 are identical and retained. Restored as a separate apartment palace in the stable HTTPS desktop origin. All nine rooms rendered with one canvas and no error text; front-door connection opened the entry.
+
+Final corrected deployment dpl_3n2faDmA7cpi7qHE4pMTdoz9NXTE READY. Live desktop: circle drag saved; manual yaw -12.5/pitch -38 persisted through reload; image drag moved its center by 50px/35px while remaining 36px square; sample image coordinates restored. At 390x844, connection editor preserved -0. draft and applied -12.5; cancelling restored the committed position. Exported tested nine-room tour successfully. Source and all feature branches pushed; private photos/ZIP are absent from Git history. Physical Android/iPhone dragging remains NOT RUN.

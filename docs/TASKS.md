@@ -20,8 +20,8 @@ Integration owner: Codex. Shared contracts, dependency changes and lockfile are 
 | codex/motion-integration | Codex | Explicit controls/editor suspension | Integrated; desktop waiting/fallback checked |
 | codex/density-fixtures | media agent |118 distinct technical images | Roundtrip and rendered count/selection passed |
 | codex/demo-delivery | Codex | Vercel/secrets/QR | Final HTTPS deployment READY; public home/QR and protected AI checked |
-| codex/demo-regression | Codex | Placement/lifecycle/save-status regression | 117 tests/typecheck/lint/production build passed; GitHub release push pending |
-| codex/draggable-hotspots | Codex | Explicit move mode for circles/images, save on drop, manual coordinates | Implemented; adapter regression and release checks in progress |
+| codex/demo-regression | Codex | Placement/lifecycle/save-status regression | Verified release integrated into main; all feature branches pushed |
+| codex/draggable-hotspots | Codex | Explicit move mode for circles/images, save on drop, manual coordinates | 126 tests/typecheck/lint/build passed; deployed and desktop/390�844 browser checks passed |
 
 Apartment collection: nine supplied panoramas restored locally as a separate palace with 16 editable circular connections. ZIP and connection coordinates remain in ignored private-media. Photos 5 and 6 are identical and both are retained. No apartment assets are published. Initial doorway placement is approximate; the owner can drag circles or edit their coordinates/destination.
 
