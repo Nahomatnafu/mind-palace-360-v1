@@ -54,7 +54,7 @@ export default function PalaceGallery() {
     finally { setBusy(false); }
   }
   return <main className="gallery" onClick={e => { if (e.target === e.currentTarget) setArmed(''); }}>
-    <header><span className="eyebrow">MIND PALACE</span><h1 className="gallery-title">Your Memory Palaces</h1><p>One shared space for you and Aneesha. Open a palace to explore or edit together. Press and hold a palace to delete it for everyone.</p></header>
+    <header><span className="eyebrow">MIND PALACE</span><h1 className="gallery-title">Your Memory Palaces</h1><p>Open a palace to explore or add your own memories. Changes are shared with other visitors. Press and hold a palace to delete it.</p></header>
     {error && <div><p role="alert" className="gallery-error">{error}</p><button className="primary" onClick={()=>{setError('');setRefresh(n=>n+1);}}>Try again</button></div>}
     {cards === null && !error ? <p role="status">Loading your palaces…</p> : <div className="palace-grid">
       {cards?.map(card => <div key={card.id} className={armed === card.id ? 'palace-item armed' : 'palace-item'}>
