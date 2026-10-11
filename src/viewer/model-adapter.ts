@@ -37,6 +37,12 @@ export function pinchZoom(zoom: number, previousDistance: number, distance: numb
   if (!(previousDistance > 0) || !(distance > 0) || !Number.isFinite(zoom)) return Math.max(0, Math.min(100, zoom || 0));
   return Math.max(0, Math.min(100, zoom + (distance / previousDistance - 1) * gain));
 }
+/** Marker size is stored in centimetres for 3D rooms; this is its on-screen size at a given distance. */
+export function projectedMarkerSize(sizeCm: number, distance: number, fovDegrees: number, viewportHeight: number): number {
+  const focal = viewportHeight / (2 * Math.tan(toRadians(fovDegrees) / 2));
+  const px = (sizeCm / 100) * focal / Math.max(distance, 0.05);
+  return Math.max(8, Math.min(320, Number.isFinite(px) ? px : 8));
+}
 export function directionFor(yaw: number, pitch: number): Vec3 {
   const y = toRadians(yaw), p = toRadians(pitch);
   return { x: Math.sin(y) * Math.cos(p), y: Math.sin(p), z: -Math.cos(y) * Math.cos(p) };
@@ -261,8 +267,11 @@ export function createModelViewer(container: HTMLElement, callbacks: ModelCallba
       entry.element.classList.toggle('hidden', !visible);
       if (!visible) continue;
       entry.element.style.transform = `translate(${((projected.x + 1) / 2 * width).toFixed(1)}px, ${((1 - projected.y) / 2 * height).toFixed(1)}px) translate(-50%, -50%)`;
+      const toMarker = entry.world.clone().sub(camera.position); const distance = toMarker.length();
+      // Perspective sizing: a memory keeps its real-world size, so it shrinks with distance like the room around it.
+      const px = projectedMarkerSize(entry.item.size, distance, camera.fov, height).toFixed(1) + 'px';
+      entry.element.style.width = px; entry.element.style.height = px;
       if (occlude) {
-        const toMarker = entry.world.clone().sub(camera.position); const distance = toMarker.length();
         raycaster.set(camera.position, toMarker.normalize()); raycaster.far = distance;
         const hit = raycaster.intersectObjects(solids, false)[0]; raycaster.far = Infinity;
         entry.element.classList.toggle('occluded', !!hit && hit.distance < distance - 0.08);
@@ -328,7 +337,6 @@ export function createModelViewer(container: HTMLElement, callbacks: ModelCallba
         entry.item = item; entry.world.set(item.position.x, item.position.y, item.position.z);
         const button = entry.element;
         button.className = `palace-marker ${item.kind}`; button.setAttribute('aria-label', item.label); button.title = item.label;
-        button.style.width = `${item.size}px`; button.style.height = `${item.size}px`;
         button.replaceChildren();
         if (item.image) { const image = document.createElement('img'); image.src = item.image; image.alt = ''; image.draggable = false; button.append(image); }
         else { const ring = document.createElement('span'); ring.className = 'portal-ring'; button.append(ring); }

@@ -1,8 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { directionFor, dragThresholdFor, floorLevelsOf, fovForZoom, isWalkable, pinchZoom } from './model-adapter';
+import { directionFor, dragThresholdFor, floorLevelsOf, fovForZoom, isWalkable, pinchZoom, projectedMarkerSize } from './model-adapter';
 const close = (a: number, b: number) => Math.abs(a - b) < 1e-6;
 describe('3D walkthrough helpers', () => {
+  it('sizes 3D memories by perspective: half the size at twice the distance, clamped at the extremes', () => {
+    const near = projectedMarkerSize(36, 2, 86, 844), far = projectedMarkerSize(36, 4, 86, 844);
+    expect(near / far).toBeCloseTo(2, 5);
+    expect(projectedMarkerSize(36, 2, 86, 844)).toBeCloseTo(0.36 * (844 / (2 * Math.tan(43 * Math.PI / 180))) / 2, 5);
+    expect(projectedMarkerSize(36, 500, 86, 844)).toBe(8);
+    expect(projectedMarkerSize(128, 0.1, 86, 844)).toBe(320);
+    expect(projectedMarkerSize(36, 0, 86, 844)).toBe(320);
+  });
   it('zooms a pinch by the finger-distance ratio so the gesture feels the same at any pixel density', () => {
     expect(pinchZoom(35, 100, 100)).toBe(35);
     expect(pinchZoom(35, 100, 200)).toBe(95);
