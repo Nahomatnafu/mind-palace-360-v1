@@ -2,11 +2,16 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { importPalace } from '@/storage/backup';
 import { repository } from '@/storage/repository';
 import { previewForModel } from '@/domain/templates';
 interface Card { id: string; title: string; description?: string; rooms: number; thumbnail?: string }
 const LONG_PRESS_MS = 500, MOVE_TOLERANCE = 10;
 export default function PalaceGallery() {
+  const router=useRouter();
+  const backupInput=useRef<HTMLInputElement>(null);
+  const importing=useRef(false);
   const [cards, setCards] = useState<Card[] | null>(null);
   const [error, setError] = useState('');
   const [armed, setArmed] = useState('');
@@ -22,7 +27,7 @@ export default function PalaceGallery() {
           const palace = await repository.load(summary.id);
           const start = palace?.rooms.find(r => r.id === palace.startRoomId) ?? palace?.rooms[0];
           let thumbnail = start?.demoSrc ?? previewForModel(start?.modelSrc);
-          if (!thumbnail && start?.panoramaAssetId) { const asset = await repository.asset(start.panoramaAssetId); if (asset) { thumbnail = URL.createObjectURL(asset.blob); urls.push(thumbnail); } }
+          if (!thumbnail && start?.panoramaAssetId) { const asset = await repository.asset(start.panoramaAssetId); if (asset && !cancelled) { thumbnail = URL.createObjectURL(asset.blob); urls.push(thumbnail); } }
           next.push({ id: summary.id, title: summary.title, description: palace?.description, rooms: palace?.rooms.length ?? 0, thumbnail });
         }
         if (!cancelled) setCards(next);
@@ -30,7 +35,15 @@ export default function PalaceGallery() {
     })();
     return () => { cancelled = true; urls.forEach(URL.revokeObjectURL); };
   }, []);
+  useEffect(() => { const current=press.current;return()=>{if(current.timer)clearTimeout(current.timer);}; }, []);
   useEffect(() => { const escape = (e: KeyboardEvent) => { if (e.key === 'Escape' && !busy) { setArmed(''); setConfirming(null); } }; window.addEventListener('keydown', escape); return () => window.removeEventListener('keydown', escape); }, [busy]);
+  async function restore(file?:File) {
+    if(!file || busy || importing.current)return;
+    importing.current=true;setBusy(true);setError('');
+    try { const palace=await importPalace(file);router.push('/palace/'+encodeURIComponent(palace.id)); }
+    catch(error) { setError(message(error)); }
+    finally { importing.current=false;setBusy(false);if(backupInput.current)backupInput.current.value=''; }
+  }
   function clearPress() { if (press.current.timer) clearTimeout(press.current.timer); press.current.timer = null; }
   function startPress(id: string, e: ReactPointerEvent) {
     if (e.button !== 0 || busy) return;
@@ -52,6 +65,8 @@ export default function PalaceGallery() {
   }
   return <main className="gallery" onClick={e => { if (e.target === e.currentTarget) setArmed(''); }}>
     <header><span className="eyebrow">MIND PALACE</span><h1 className="gallery-title">Your Memory Palaces</h1><p>Palaces are saved in this browser. Open one to keep exploring, or start a new space. Press and hold a palace to delete it.</p></header>
+    <div className="gallery-actions"><button className="primary" disabled={busy} onClick={()=>backupInput.current?.click()}>{busy?'Working…':'Restore ZIP'}</button><p>Bring a saved tour from another device.</p></div>
+    <input ref={backupInput} type="file" accept=".zip" hidden aria-label="Restore palace backup" onChange={e=>void restore(e.target.files?.[0])}/>
     {error && <p role="alert" className="gallery-error">{error}</p>}
     {cards === null && !error ? <p role="status">Loading your palaces…</p> : <div className="palace-grid">
       {cards?.map(card => <div key={card.id} className={armed === card.id ? 'palace-item armed' : 'palace-item'}>
