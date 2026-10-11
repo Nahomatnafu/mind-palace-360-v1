@@ -11,6 +11,7 @@ export function validateStoredPalace(value: unknown): asserts value is Palace {
     if (id !== undefined && (typeof id !== 'string' || !idPattern.test(id))) throw new Error('Invalid image reference.');
     if (item.demoSrc !== undefined && (typeof item.demoSrc !== 'string' || !/^\/demo\/[A-Za-z0-9_/-]+\.(?:jpg|jpeg|png|webp)$/.test(item.demoSrc) || item.demoSrc.includes('..'))) throw new Error('Only approved demo image paths are supported.');
   }
+  for (const room of p.rooms) if (room.modelSrc !== undefined && (typeof room.modelSrc !== 'string' || !/^\/models\/[A-Za-z0-9_-]+\.glb$/.test(room.modelSrc))) throw new Error('Only bundled 3D model paths are supported.');
 }
 export function rasterInfo(bytes: Uint8Array): { mimeType: string; width: number; height: number } {
   const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);

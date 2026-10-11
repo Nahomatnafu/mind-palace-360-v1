@@ -22,6 +22,8 @@ Integration owner: Codex. Shared contracts, dependency changes and lockfile are 
 | codex/demo-delivery | Codex | Vercel/secrets/QR | Final HTTPS deployment READY; public home/QR and protected AI checked |
 | codex/demo-regression | Codex | Placement/lifecycle/save-status regression | Verified release integrated into main; all feature branches pushed |
 | codex/draggable-hotspots | Codex | Explicit move mode for circles/images, save on drop, manual coordinates | 126 tests/typecheck/lint/build passed; deployed and desktop/390�844 browser checks passed |
+| aneesha | Aneesha | Palace gallery home with long-press delete, template chooser (Real/3D/Cartoon), per-palace routes | Implemented; typecheck/lint/130 tests/build passed; desktop browser flow checked, phone NOT RUN |
+| aneesha (3D) | Aneesha | three.js walkthrough viewer for glTF rooms (look, tap-to-walk, 3D-anchored memories), Family house template from public/models/house1.glb; adds Vec3 fields to Room/Memory/TourLink and @types/three devDependency (needs integration owner sign-off) | typecheck/lint/135 tests/build passed; render, picking and template flow checked in a hidden Chrome tab, glide animation and marker overlay NOT RUN in a visible tab, phone NOT RUN |
 
 Apartment collection: nine supplied panoramas restored locally as a separate palace with 16 editable circular connections. ZIP and connection coordinates remain in ignored private-media. Photos 5 and 6 are identical and both are retained. No apartment assets are published. Initial doorway placement is approximate; the owner can drag circles or edit their coordinates/destination.
 

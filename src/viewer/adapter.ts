@@ -1,14 +1,21 @@
 import { Viewer, events } from '@photo-sphere-viewer/core';
 import { MarkersPlugin } from '@photo-sphere-viewer/markers-plugin';
-import { normalizeYaw, toDegrees, toRadians, type Camera } from '@/domain/model';
+import { normalizeYaw, toDegrees, toRadians, type Camera, type Vec3 } from '@/domain/model';
 
-export interface ViewerMarker { id: string; yaw: number; pitch: number; label: string; size: number; image?: string; kind: 'memory' | 'link' }
-export interface ViewerAdapter {
-  load(src: string, camera: Camera): Promise<void>;
+/** Markers carry spherical coordinates for panoramas and, inside 3D model rooms, a world position. */
+export interface ViewerMarker { id: string; yaw: number; pitch: number; label: string; size: number; image?: string; kind: 'memory' | 'link'; position?: Vec3 }
+/** The controls shared by every viewer engine so the workspace can drive either one. */
+export interface CameraControls {
   markers(markers: ViewerMarker[]): void;
   camera(): Camera;
   lookAt(camera: Camera): void;
   zoom(delta: number): void;
+  /** Only 3D model viewers report and change the standing position. */
+  position?(): Vec3;
+  moveTo?(position: Vec3): void;
+}
+export interface ViewerAdapter extends CameraControls {
+  load(src: string, camera: Camera): Promise<void>;
   editMarkers(enabled: boolean): void;
   destroy(): void;
 }
