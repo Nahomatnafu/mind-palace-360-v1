@@ -23,3 +23,5 @@ body{-webkit-font-smoothing:antialiased}button,input,select,textarea{letter-spac
 
 /* Keep form focus inside the field; no halo overlaps nearby labels. */
 .inspector input:focus-visible,.inspector textarea:focus-visible,.inspector select:focus-visible,.editor-panel input:focus-visible,.editor-panel select:focus-visible{outline:2px solid #9672d1;outline-offset:-2px;box-shadow:none;border-color:#9672d1}
+
+.motion-permission{position:absolute;right:14px;top:14px;max-width:min(350px,calc(100% - 28px));padding:14px;background:#231e2ef2;color:#fff;border:1px solid #ffffff30;border-radius:12px;z-index:3;display:flex;flex-wrap:wrap;gap:8px}.motion-permission p{flex-basis:100%;margin:0 0 4px;font-size:12px}.motion-permission button{border:1px solid #b5a3cf;background:#d4c2fa;color:#302539;padding:9px 12px;border-radius:8px;min-height:44px;font-size:12px}.motion-permission button:last-child{background:transparent;color:white}

@@ -1,6 +1,6 @@
 import {afterEach,beforeEach,describe,expect,it,vi,type Mock} from 'vitest';
 import type {Camera} from '@/domain/model';
-import {createMotionController,orientationToCameraAngles,smoothAngles,type MotionController,type MotionState} from './motion';
+import {createMotionController,isMotionDevice,orientationToCameraAngles,smoothAngles,type MotionController,type MotionState} from './motion';
 
 describe('sensor optical direction and smoothing',()=>{
   it('maps upright phone heading to panorama right-positive yaw',()=>{
@@ -66,6 +66,43 @@ describe('motion controller with mocked browser sensors',()=>{
     expect(camera).toEqual({yaw:42,pitch:10,zoom:25});
     emit(180);frame(91);expect(camera.yaw).toBeLessThan(42);expect(camera.zoom).toBe(25);
   });
+  it('starts automatically without a permission API',async()=>{
+    await controller.enable({requestPermission:false});expect(states.at(-1)?.status).toBe('waiting');
+    emit(80);frame();expect(camera).toEqual({yaw:42,pitch:10,zoom:25});
+    emit(100);frame(91);expect(camera.yaw).toBeLessThan(42);
+  });
+  it('waits for a gesture and reuses granted access after room changes',async()=>{
+    const permission=vi.fn().mockResolvedValue('granted');win.DeviceOrientationEvent.requestPermission=permission;
+    await controller.enable({requestPermission:false});expect(permission).not.toHaveBeenCalled();
+    expect(states.at(-1)?.status).toBe('permission-required');
+    await controller.enable();expect(permission).toHaveBeenCalledOnce();emit(0);frame();
+    controller.disable();camera={yaw:-120,pitch:-20,zoom:55};
+    await controller.enable({requestPermission:false});expect(permission).toHaveBeenCalledOnce();
+    emit(100);frame();expect(camera).toEqual({yaw:-120,pitch:-20,zoom:55});
+  });
+  it('does not repeat a denied prompt automatically',async()=>{
+    const permission=vi.fn().mockResolvedValue('denied');win.DeviceOrientationEvent.requestPermission=permission;
+    await controller.enable();controller.disable();await controller.enable({requestPermission:false});
+    expect(permission).toHaveBeenCalledOnce();emit(0);frame();expect(onCamera).not.toHaveBeenCalled();
+  });
+  it('pauses during dragging and resumes from the manually chosen view',async()=>{
+    await controller.enable({requestPermission:false});emit(0);frame();
+    controller.setInteracting(true);camera={yaw:100,pitch:-20,zoom:60};
+    emit(50);frame(91);expect(camera).toEqual({yaw:100,pitch:-20,zoom:60});
+    controller.setInteracting(false);emit(50);frame(110);
+    expect(camera).toEqual({yaw:100,pitch:-20,zoom:60});
+    emit(70);frame(185);expect(camera.yaw).toBeLessThan(100);expect(camera.zoom).toBe(60);
+  });
+  it('preserves drag inertia before and after the first resumed sensor frame',async()=>{
+    await controller.enable();emit(0);frame();controller.setInteracting(true);
+    camera={yaw:170,pitch:15,zoom:40};emit(50);controller.setInteracting(false);
+    camera={yaw:-175,pitch:18,zoom:40};emit(50);frame(91);
+    expect(camera.yaw).toBeCloseTo(-175);expect(camera.pitch).toBeCloseTo(18);
+    camera={yaw:-170,pitch:20,zoom:40};emit(50);frame(166);
+    expect(camera.yaw).toBeCloseTo(-170);expect(camera.pitch).toBeCloseTo(20);
+    for(let i=0;i<8;i++){emit(50);frame(240+i*75);}
+    expect(camera.yaw).toBeCloseTo(-170);expect(camera.pitch).toBeCloseTo(20);expect(camera.zoom).toBe(40);
+  });
   it('requests permission synchronously from enable and reports denial',async()=>{
     const permission=vi.fn().mockResolvedValue('denied');
     win.DeviceOrientationEvent.requestPermission=permission;
@@ -114,5 +151,14 @@ describe('motion controller with mocked browser sensors',()=>{
     expect(states.at(-1)?.status).toBe('waiting');emit(90);frame();expect(camera).toEqual(before);
     controller.destroy();expect(frames.size).toBe(0);onCamera.mockClear();
     emit(130);frame();vi.advanceTimersByTime(7000);expect(onCamera).not.toHaveBeenCalled();
+  });
+});
+
+describe('automatic motion device policy',()=>{
+  it('requires a touch-first device with sensors, independent of window width',()=>{
+    expect(isMotionDevice({touchPoints:5,coarsePointer:true,orientationAvailable:true})).toBe(true);
+    expect(isMotionDevice({touchPoints:5,coarsePointer:false,orientationAvailable:true})).toBe(false);
+    expect(isMotionDevice({touchPoints:0,coarsePointer:true,orientationAvailable:true})).toBe(false);
+    expect(isMotionDevice({touchPoints:5,coarsePointer:true,orientationAvailable:false})).toBe(false);
   });
 });
