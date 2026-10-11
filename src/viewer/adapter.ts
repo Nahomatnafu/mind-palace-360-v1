@@ -34,6 +34,7 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
   const cancelDrag=()=>{if(drag){updatePosition(drag.item.id,drag.item.yaw,drag.item.pitch);drag=null;}pointer=null;};
   const pointerDown=(event:PointerEvent)=>{
     pointer={x:event.clientX,y:event.clientY};movedPointer=false;
+    suppressed=null;
     const marker=event.target instanceof Element?event.target.closest('[data-marker-id]') as HTMLElement|null:null;
     const item=currentMarkers.find(item=>item.id===marker?.dataset.markerId);
     if(!editing||!item||event.button!==0||drag)return;
@@ -53,6 +54,7 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
   };
   const pointerUp=(event:PointerEvent)=>{
     if(drag&&event.pointerId!==drag.pointerId)return;
+    if(pointer&&Math.hypot(event.clientX-pointer.x,event.clientY-pointer.y)>6)movedPointer=true;
     if(drag)pointerMove(event);
     pointer=null;if(!drag)return;
     event.stopImmediatePropagation();const completed=drag;drag=null;
@@ -83,17 +85,24 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
   viewer.addEventListener(events.PositionUpdatedEvent.type,moved);
   let disposed=false;
   let request=0;
+  let loading=false;
+  let markerVersion=0;
   return {
     async load(src,position) {
       const version=++request;
       cancelDrag();
+      loading=true;markerVersion++;currentMarkers=[];
       plugin.clearMarkers();
       const loaded=await viewer.setPanorama(src,{position:{yaw:toRadians(position.yaw),pitch:toRadians(position.pitch)},zoom:position.zoom,transition:false});
-      if (!disposed && version===request && !loaded) throw new Error('Room loading was interrupted. Please try again.');
+      if (!disposed && version===request) {
+        if(!loaded) throw new Error('Room loading was interrupted. Please try again.');
+        loading=false;
+      }
     },
     markers(items) {
-      if(disposed) return;
+      if(disposed || loading) return;
       cancelDrag();currentMarkers=items;
+      const version=++markerVersion;
       plugin.setMarkers(items.map(item=>{
         const button=document.createElement('button');
         button.type='button'; button.className=`palace-marker ${item.kind}`;
@@ -110,7 +119,14 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
               if(position&&!Array.isArray(position)){const point=viewer.dataHelper.cleanPosition(position);render(point.yaw,point.pitch,viewerPosition);}
             };
           }}
-        button.addEventListener('click',event=>{event.stopPropagation();if(suppressed?.id===item.id&&Date.now()<suppressed.until){suppressed=null;return;}callbacks.select(item.id);});
+        button.addEventListener('click',event=>{
+          event.stopPropagation();
+          // A drag, a second click of a double-click, or an old room's DOM must
+          // never turn into another navigation after the view has changed.
+          if(disposed||loading||version!==markerVersion||movedPointer||event.button!==0||event.detail>1)return;
+          if(suppressed?.id===item.id&&Date.now()<suppressed.until){suppressed=null;return;}
+          callbacks.select(item.id);
+        });
         return {id:item.id,position:{yaw:toRadians(item.yaw),pitch:toRadians(item.pitch)},element:button,size:{width:item.size,height:item.size},hoverScale:false};
       }));
     },

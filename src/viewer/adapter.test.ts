@@ -20,12 +20,54 @@ describe('viewer adapter lifecycle and input',()=>{
 });
 
 const draggable={id:'portal',yaw:-20,pitch:-15,label:'Go to next room',size:30,kind:'link' as const};
+describe('room navigation gesture regressions',()=>{
+ it('does not activate a hotspot when a panorama drag ends over it',()=>{
+  const {viewer,select}=setup();viewer.markers([draggable]);
+  const button=state.plugin.setMarkers.mock.calls[0][0][0].element;
+  pointer(host,'pointerdown');pointer(target,'pointermove',360,200);pointer(target,'pointerup',360,200);pointer(button,'click',360,200);
+  expect(select).not.toHaveBeenCalled();
+  pointer(host,'pointerdown');pointer(target,'pointerup');pointer(button,'click');
+  expect(select).toHaveBeenCalledExactlyOnceWith('portal');viewer.destroy();
+ });
+ it('ignores a removed room button even if its delayed click arrives after the next room loads',async()=>{
+  const {viewer,select}=setup();viewer.markers([draggable]);
+  const oldButton=state.plugin.setMarkers.mock.calls[0][0][0].element;
+  await viewer.load('/next.jpg',{yaw:0,pitch:0,zoom:35});
+  viewer.markers([{...draggable,id:'next-room-link'}]);pointer(oldButton,'click');
+  expect(select).not.toHaveBeenCalled();viewer.destroy();
+ });
+ it('keeps markers disabled throughout a slow room load, including premature React marker updates',async()=>{
+  const {viewer,select}=setup();viewer.markers([draggable]);
+  let complete!:(value:boolean)=>void;state.panorama.mockImplementationOnce(()=>new Promise<boolean>(resolve=>{complete=resolve;}));
+  const pending=viewer.load('/slow.jpg',{yaw:0,pitch:0,zoom:35});
+  viewer.markers([{...draggable,id:'wrong-room'}]);
+  expect(state.plugin.setMarkers).toHaveBeenCalledTimes(1);
+  complete(true);await pending;viewer.markers([{...draggable,id:'correct-room'}]);
+  pointer(state.plugin.setMarkers.mock.calls.at(-1)![0][0].element,'click');
+  expect(select).toHaveBeenCalledExactlyOnceWith('correct-room');viewer.destroy();
+ });
+ it('ignores the second click of a double-click on an arriving room hotspot',()=>{
+  const {viewer,select}=setup();viewer.markers([draggable]);
+  const button=state.plugin.setMarkers.mock.calls[0][0][0].element;
+  button.dispatchEvent(Object.assign(new Event('click'),{button:0,detail:2}));
+  expect(select).not.toHaveBeenCalled();pointer(button,'click');
+  expect(select).toHaveBeenCalledExactlyOnceWith('portal');viewer.destroy();
+ });
+ it('does not reactivate markers when an obsolete load finishes before the newest one',async()=>{
+  const {viewer}=setup();let first!:(value:boolean)=>void,second!:(value:boolean)=>void;
+  state.panorama.mockImplementationOnce(()=>new Promise<boolean>(r=>{first=r;})).mockImplementationOnce(()=>new Promise<boolean>(r=>{second=r;}));
+  const old=viewer.load('/old.jpg',{yaw:0,pitch:0,zoom:35});
+  const current=viewer.load('/current.jpg',{yaw:0,pitch:0,zoom:35});
+  first(true);await old;viewer.markers([draggable]);expect(state.plugin.setMarkers).not.toHaveBeenCalled();
+  second(true);await current;viewer.markers([draggable]);expect(state.plugin.setMarkers).toHaveBeenCalledTimes(1);viewer.destroy();
+ });
+});
 function startDrag(viewer:ReturnType<typeof createViewer>){viewer.markers([draggable]);viewer.editMarkers(true);host.insideMarker=true;host.dataset.markerId='portal';pointer(host,'pointerdown');}
 describe('marker dragging',()=>{
  it('commits the actual drop position even when the last move was coalesced',()=>{const {viewer,move}=setup();startDrag(viewer);state.project.mockReturnValueOnce({yaw:0,pitch:0});pointer(target,'pointermove',330,205);pointer(target,'pointerup',370,250);expect(state.project).toHaveBeenLastCalledWith({x:270,y:200});expect(move).toHaveBeenCalledWith('portal',90,expect.closeTo(-30,8));viewer.destroy();});
  it('blocks engine compatibility mouse/touch starts only in marker editing mode',()=>{const {viewer}=setup();startDrag(viewer);for(const type of ['mousedown','touchstart'])expect(host.dispatchEvent(new Event(type,{cancelable:true}))).toBe(false);for(const type of ['mousemove','touchmove'])expect(target.dispatchEvent(new Event(type,{cancelable:true}))).toBe(false);viewer.editMarkers(false);expect(host.dispatchEvent(new Event('mousedown',{cancelable:true}))).toBe(true);viewer.destroy();host.insideMarker=true;expect(host.dispatchEvent(new Event('touchstart',{cancelable:true}))).toBe(true);});
  it('moves image memories with negative yaw and positive pitch too',()=>{const {viewer,move}=setup();viewer.markers([{...draggable,kind:'memory',image:'/demo/bracelet.png'}]);viewer.editMarkers(true);host.insideMarker=true;host.dataset.markerId='portal';state.project.mockReturnValue({yaw:-Math.PI/2,pitch:Math.PI/6});pointer(host,'pointerdown');pointer(target,'pointermove',350,210);pointer(target,'pointerup');expect(move).toHaveBeenCalledWith('portal',-90,expect.closeTo(30,8));viewer.destroy();});
- it('previews projected position, commits once on release, suppresses navigation click',()=>{const {viewer,move,select}=setup();startDrag(viewer);pointer(target,'pointermove',350,210);expect(state.plugin.updateMarker).toHaveBeenLastCalledWith({id:'portal',position:{yaw:Math.PI/2,pitch:expect.closeTo(-Math.PI/6,8)}});expect(move).not.toHaveBeenCalled();pointer(target,'pointerup',350,210);expect(move).toHaveBeenCalledWith('portal',90,expect.closeTo(-30,8));const button=state.plugin.setMarkers.mock.calls[0][0][0].element;pointer(button,'click');expect(select).not.toHaveBeenCalled();pointer(button,'click');expect(select).toHaveBeenCalledWith('portal');viewer.destroy();});
+ it('previews projected position, commits once on release, suppresses navigation click',()=>{const {viewer,move,select}=setup();startDrag(viewer);pointer(target,'pointermove',350,210);expect(state.plugin.updateMarker).toHaveBeenLastCalledWith({id:'portal',position:{yaw:Math.PI/2,pitch:expect.closeTo(-Math.PI/6,8)}});expect(move).not.toHaveBeenCalled();pointer(target,'pointerup',350,210);expect(move).toHaveBeenCalledWith('portal',90,expect.closeTo(-30,8));const button=state.plugin.setMarkers.mock.calls[0][0][0].element;pointer(button,'click');expect(select).not.toHaveBeenCalled();pointer(host,'pointerdown');pointer(target,'pointerup');pointer(button,'click');expect(select).toHaveBeenCalledWith('portal');viewer.destroy();});
  it('keeps a tap or tiny movement as selection without writing',()=>{const {viewer,move,select}=setup();startDrag(viewer);pointer(target,'pointermove',302,201);pointer(target,'pointerup');const button=state.plugin.setMarkers.mock.calls[0][0][0].element;pointer(button,'click');expect(move).not.toHaveBeenCalled();expect(select).toHaveBeenCalledWith('portal');viewer.destroy();});
  it('does not move markers in view mode',()=>{const {viewer,move}=setup();viewer.markers([draggable]);host.insideMarker=true;host.dataset.markerId='portal';pointer(host,'pointerdown');pointer(target,'pointermove',350,210);pointer(target,'pointerup');expect(state.plugin.updateMarker).not.toHaveBeenCalled();expect(move).not.toHaveBeenCalled();viewer.destroy();});
  it('cancels interrupted touch and restores original coordinates without saving',()=>{const {viewer,move}=setup();startDrag(viewer);pointer(target,'pointermove',350,210);pointer(target,'pointercancel');pointer(target,'pointerup');expect(move).not.toHaveBeenCalled();expect(state.plugin.updateMarker).toHaveBeenLastCalledWith({id:'portal',position:{yaw:expect.closeTo(-20*Math.PI/180,8),pitch:expect.closeTo(-15*Math.PI/180,8)}});viewer.destroy();});
