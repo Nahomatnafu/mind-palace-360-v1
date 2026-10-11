@@ -18,7 +18,6 @@ export default function ModelStage(props: Props) {
     import('@/viewer/model-adapter').then(({ createModelViewer }) => {
       if (disposed || !container.current) return;
       engine.current = createModelViewer(container.current, { select: id => latest.current.onSelect(id), place: (point, camera) => latest.current.onPlace(point, camera), move: (id, point) => latest.current.onMove?.(id, point) });
-      if (process.env.NODE_ENV !== 'production') (window as unknown as { __modelViewer?: ModelViewerAdapter }).__modelViewer = engine.current;
       setRevision(n => n + 1);
     }).catch(() => setError('The 3D viewer could not start. Check WebGL support and reload.'));
     return () => { disposed = true; latest.current.onReady?.(null); engine.current?.destroy(); engine.current = null; };

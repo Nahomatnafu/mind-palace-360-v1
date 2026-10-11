@@ -14,6 +14,7 @@ const extension=(mime:string)=>mime==='image/jpeg'?'jpg':mime==='image/png'?'png
 export async function exportPalace(palace:Palace, store:PalaceRepository=repository):Promise<Blob> {
   validateStoredPalace(palace);
   const exported=structuredClone(palace), prepared=new Map<string,Asset>();
+  delete exported.revision;
   for(const item of [...exported.rooms,...exported.memories]) {
     const isRoom='initialView' in item;
     let id=isRoom?item.panoramaAssetId:item.imageAssetId;
@@ -110,6 +111,7 @@ export async function importPalace(file:Blob,store:PalaceRepository=repository):
   if(referenced.size!==oldAssets.size || Object.keys(entries).length!==assets.length+1) throw new Error('Backup has missing or unreferenced images.');
   if([...manifest.palace.rooms,...manifest.palace.memories].some(item=>item.demoSrc)) throw new Error('Backup images must be included in the archive.');
   const palace=structuredClone(manifest.palace),rooms=new Map(palace.rooms.map(room=>[room.id,newId()]));
+  delete palace.revision;
   palace.id=newId();palace.updatedAt=new Date().toISOString();palace.startRoomId=palace.startRoomId?rooms.get(palace.startRoomId)!:'';
   for(const room of palace.rooms){room.id=rooms.get(room.id)!;if(room.panoramaAssetId) room.panoramaAssetId=mapped.get(room.panoramaAssetId)!;}
   for(const memory of palace.memories){memory.id=newId();memory.roomId=rooms.get(memory.roomId)!;if(memory.imageAssetId) memory.imageAssetId=mapped.get(memory.imageAssetId)!;}
