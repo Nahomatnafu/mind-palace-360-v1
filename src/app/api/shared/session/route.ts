@@ -1,6 +1,14 @@
+import { publicDemo, publicSessionCookie } from '@/server/demo-session';
 import { body, json, requireSession, sameOrigin, sessionCookie, sharedError } from '@/server/shared';
 const attempts=new Map<string,{count:number;at:number}>();
-export async function GET(request:Request){try{requireSession(request);return json({authenticated:true});}catch(error){return sharedError(error);}}
+export async function GET(request:Request){try{
+  if(publicDemo()) {
+    if(request.headers.get('sec-fetch-site')==='cross-site') return Response.json({error:'Open the demo directly.'},{status:403});
+    const cookie=publicSessionCookie(new URL(process.env.APP_ORIGIN ?? request.url).protocol==='https:');
+    return Response.json({authenticated:true,publicAccess:true},{headers:{'Set-Cookie':cookie,'Cache-Control':'no-store'}});
+  }
+  requireSession(request);return json({authenticated:true});
+}catch(error){return sharedError(error);}}
 export async function POST(request:Request){try{
   sameOrigin(request);
   const key=request.headers.get('x-forwarded-for')?.split(',')[0]??'demo';const now=Date.now();

@@ -5,13 +5,12 @@ import { importImage } from '@/media/images';
 import { parseAssociations, requireAIResponse } from './association-client';
 import styles from './AssociationGenerator.module.css';
 interface Props { concept:string; context:string; code:string; onCode:(code:string)=>void; onImage:(asset:Asset)=>void; onBusyChange:(busy:boolean)=>void; disabled?:boolean }
-export default function AssociationGenerator({concept,context,code,onCode,onImage,onBusyChange,disabled=false}:Props){
+export default function AssociationGenerator({concept,context,code,onImage,onBusyChange,disabled=false}:Props){
  const [prompt,setPrompt]=useState('');
  const [suggestions,setSuggestions]=useState<Association[]>([]);
  const [selected,setSelected]=useState('');
  const [phase,setPhase]=useState<'idle'|'suggesting'|'generating'>('idle');
  const [error,setError]=useState('');const [notice,setNotice]=useState('');
- const [accessOpen,setAccessOpen]=useState(false);
  const lifecycle=useRef({mounted:true,epoch:0,active:false,controller:undefined as AbortController|undefined});
  const latest=useRef(onImage);useEffect(()=>{latest.current=onImage;},[onImage]);
  const busy=phase!=='idle';
@@ -36,12 +35,10 @@ export default function AssociationGenerator({concept,context,code,onCode,onImag
     const asset=await importImage(new File([blob],'cutout.png',{type:'image/png'}),'memory');if(!current())return;
     latest.current(asset);setNotice('Transparent image ready. Save memory to keep it.');
    }
-   setAccessOpen(false);
-  }catch(e){if(current()){setError(e instanceof Error?e.message:'AI could not finish. Please retry.');if(e instanceof Error&&/access code/i.test(e.message))setAccessOpen(true);}}
+  }catch(e){if(current()){setError(e instanceof Error?e.message:'AI could not finish. Please retry.');}}
   finally{if(current()){state.active=false;setPhase('idle');}}
  }
  return <div className={styles.panel} aria-label="Create a memory image">
-  <details open={accessOpen} onToggle={e=>setAccessOpen(e.currentTarget.open)} className={styles.access}><summary>AI access · shared demo unlocked</summary><label>Demo access code<input type="password" value={code} onChange={e=>onCode(e.target.value)} maxLength={256} autoComplete="off" disabled={busy||disabled}/></label><p>Your shared demo session already enables AI. Only enter a code here if asked. Your room photos are never sent to AI.</p></details>
   <div className={styles.suggestRow}><span>Need a picture idea?</span><button disabled={busy||disabled||!concept.trim()} onClick={()=>void run('suggesting')}>{phase==='suggesting'?'Finding ideas…':'Suggest 3 objects'}</button></div>
   {suggestions.length>0&&<div className={styles.choices} aria-label="Picture suggestions">{suggestions.map(item=><button key={item.id} disabled={busy||disabled} aria-pressed={selected===item.id} onClick={()=>{setSelected(item.id);setPrompt(item.prompt);setNotice('');}}><strong>{item.title}</strong><span>{item.explanation}</span></button>)}</div>}
   <label>What should the picture show?<textarea value={prompt} onChange={e=>{setPrompt(e.target.value);setSelected('');}} rows={2} maxLength={2500} placeholder="A plain gold bracelet" disabled={busy||disabled}/></label>

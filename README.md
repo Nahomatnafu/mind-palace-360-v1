@@ -1,49 +1,53 @@
 # Mind Palace 360
 
-A visual memory palace: place an image in a 360 room, then tap it to reveal the idea or story it represents.
+Turn rooms into visual memory palaces. Place an image at a spot in a 360° panorama, attach a note, and tap the image to recall what it represents.
 
-Demo: https://mind-palace-360-v1.vercel.app
-Private repository: https://github.com/Nahomatnafu/mind-palace-360-v1
-QR: public/demo-qr.png
+**[Open the judges’ demo](https://mind-palace-360-judges.vercel.app)** — no signup or access code required.
 
-## Start locally
+## Try it
 
-Node22+, then npm ci and npm run dev. Open http://localhost:3005. For production: npm run build then npm start. The new project directory currently retains the local folder name mind-palace-360-v2; its GitHub repository is v1.
+1. Open **My Apartment** or **Family house** from the gallery.
+2. Look around and tap a memory image to reveal its note. Circular connections move between photo rooms.
+3. In **Edit**, choose **Add memory** and a location. Enter a title and note, then upload a picture or describe one to generate with AI.
+4. Save the memory, switch to **Explore**, and tap it again. You can also resize and reposition images.
 
-Checks: npm run typecheck, npm run lint, npm test, npm run build. Build uses webpack with disk cache disabled after the initial disk-space failure. Vercel clean installation/build was verified.
+The judges’ deployment has its own editable copies of the prepared palaces and images. Changes there do not change the team’s original workspace. Visitors to the judges’ demo share those copies.
 
-## Create a memory
+## Built with
 
-Choose Edit, then + Add memory in the sidebar and tap a spot in the room. Enter what you want to remember (Gold) and an optional note (Au, atomic number 79). Upload an image or describe the picture you want (a plain gold bracelet) and generate it. Save memory, switch to Explore, and tap the image to reveal its note. Size & placement supports 16-128px fixed screen size (36px by default) and signed yaw/pitch inputs displayed to one decimal; Apply confirms a number. Drag the image while its sidebar is open, then Save memory.
+Next.js, React, TypeScript, Photo Sphere Viewer, Three.js, Supabase Postgres and Storage, OpenRouter, Sharp, and Vercel. Gemini suggests familiar visual associations; GPT Image generates transparent cutouts. The models are configurable on the server.
 
-The palace name in the top bar opens New palace, Export ZIP and Restore ZIP. Import equirectangular 360 JPEGs using Import rooms above the thumbnail strip. Select a thumbnail to change rooms. Room settings rename rooms, set the entrance view and replace the room photo without rebuilding hotspots. Connect rooms places circular links; select a circle in Edit to change its destination or signed coordinates. Explore hides editing controls and makes circles navigate.
+## Run locally
 
-## AI
+Use Node.js 22 or later:
 
-Copy .env.example to ignored .env.local. Set OPENROUTER_API_KEY and a separate DEMO_ACCESS_CODE. Optional OPENROUTER_TEXT_MODEL and OPENROUTER_IMAGE_MODEL configure models. No NEXT_PUBLIC key is used. Local credentials were configured using the existing authorized key. The local demo code is in ignored private-media/DEMO_ACCESS.txt.
+```sh
+npm ci
+cp .env.example .env.local
+npm run dev
+```
 
-In the memory sidebar, choose Create with AI. Enter the demo access code under AI access once per page session. Describe the object directly or use Suggest 3 objects for familiar choices. Generate image places the result in the draft without changing the memory title or note; Save memory commits it. Room photos are never sent to AI. Requests are not automatically retried. The per-server burst guard allows six image attempts and twenty suggestion attempts per minute, with two concurrent requests. A burst-limit message gives the remaining seconds; OpenRouter credit/key-limit rejections have a distinct message. Limits are per server instance, not a global billing cap. Successful model capability discovery is cached for five minutes. The UI shows actual elapsed time while a generation runs. Cancelling cannot undo provider work already completed.
+Open http://localhost:3005. Configure your own Supabase project using [supabase/shared-demo.sql](supabase/shared-demo.sql), then set the server-only variables listed in [.env.example](.env.example). Set APP_ORIGIN to your local URL. AI requires your own OpenRouter key. Never commit .env.local.
 
-The verified image interface is OpenRouter POST /api/v1/images with openai/gpt-image-2.5-flare; generation requires transparent-background support, explicitly requests PNG, and validates meaningful alpha/clear borders before delivering a 768px cutout. Opaque, blank and globally translucent results are rejected. The revised live Gold test produced bracelet/necklace/bar suggestions and a transparent bracelet. Text default google/gemini-2.5-flash-lite is available now but the provider catalog lists expiry October20,2026; update configurable model before that date.
+The default workspace requires a demo access code. Public judges mode requires both PUBLIC_DEMO=true and SHARED_WORKSPACE=judges, with independently seeded palace and image records. It fails closed if configured against the original workspace. See [docs/SHARED_DEMO.md](docs/SHARED_DEMO.md).
 
-Paid routes validate the access code, same-origin requests, JSON size and inputs. Limits are per server instance:12 suggestion requests /3 image requests per10min,2 concurrent. These are not a global billing cap.
+## Data and AI
 
-## Photos, saving and transfer
+Palace documents save in Supabase Postgres, with images in private Storage. Revision checks reject stale edits and failed writes remain visible. ZIP export/import provides portable backups. The earlier IndexedDB repository remains in source for local-storage tests.
 
-Original sources: D:/OpenView Homes_First AD_Batch/. Never modify originals. Additional copies can go in ignored private-media/apartment/. Import through the interface; placing files in that folder does not auto-import them. The nine supplied apartment files are 1280 x 640. New panorama imports preserve the original JPEG bytes (up to 32 MB / 80 million pixels); replacement/export byte equality was verified. High-resolution camera originals must be supplied to improve an already reduced photo. Device GPU texture limits still apply. Private images and ZIP backups are excluded from repository/deployment.
+AI requests contain text, not room photos. Provider credentials remain server-side. Image responses are checked for usable transparency and visible content, then fitted within 768 × 768 pixels without upscaling. Requests have origin, payload, concurrency and per-server rate checks. Rate checks are not a global billing cap.
 
-Palaces/images live in IndexedDB on this browser/device/origin. The hosted app also imports files locally into the browser; it does not upload panorama bytes to our server. Changing origins or devices does not synchronize data. Palace menu → Export ZIP makes a backup; Restore ZIP creates a new palace with new IDs. Keep a backup before deleting or clearing browser storage.
+The owner authorized public publication of the apartment photos and backup in team-assets/apartment. Original files are preserved; local credentials and unrelated recovery snapshots are excluded from Git and deployment.
 
-## Phone motion
+## Checks and limits
 
-Open the HTTPS demo in Android Chrome or iPhone Safari. Tap Phone motion, accept the permission prompt if shown, move the phone gently, and use Recenter/Motion off. Opening editors/notes or changing rooms disables motion. Touch drag remains available. Actual Android/iPhone sensors, permission prompts and keyboard behavior still require physical-device checks; emulated layout tests do not prove them.
+```sh
+npm test
+npm run lint
+npm run build
+npm run typecheck
+```
 
-## Density fixture and boundaries
+The photo viewer navigates between captured viewpoints. The separate Family house template uses a Three.js model. The interface includes responsive controls and phone motion where supported; physical Android/iPhone verification remains outstanding. Browser tests do not establish memorization effectiveness.
 
-node --experimental-strip-types scripts/generate-density.mjs creates ignored .preview-runtime/density-118.zip:118 distinct128px PNGs,224283bytes total. Restore it for a technical density test. Browser validation found118 markers,118 unique images and one canvas. This is not evidence that anyone memorized118 items.
-
-Default memory artwork is36 CSSpixels (adjustable up to128) and stays fixed in screen size across zoom. Surface-attached perspective layers are deferred. Navigation connects panoramas; there is no reconstructed3D walking environment. VR, native apps, cloud sync, accounts and spaced repetition are deferred. No offline guarantee or PWA is claimed.
-
-Runtime npm audit --omit=dev reported0 vulnerabilities. Full audit reports5 transitive development-linter advisories from braces3.0.3; registry has no patched compatible version. Do not apply a forced downgrade of Next’s ESLint configuration. This is recorded for follow-up.
-
-See docs/TEST_RESULTS.md for exact evidence and limits, docs/TASKS.md for ownership, and docs/DEMO.md for judging and phone checks.
+See [docs/TASKS.md](docs/TASKS.md) for release verification and [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md) for historical test evidence.

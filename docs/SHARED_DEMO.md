@@ -32,3 +32,9 @@ For local development, use `.env.example` as the list of names. Prefer separate 
 - Signed session enables AI without a second code; anonymous AI stays blocked. Existing provider limits and explicit-only paid retries remain.
 - Export then import a shared palace: fresh IDs/revision and working assets, with the original unchanged.
 - Android Chrome and iPhone Safari: actual hardware motion/permission behavior requires teammate testing; desktop browser emulation cannot certify it.
+
+## Public judges deployment
+
+The separate mind-palace-360-judges Vercel project uses PUBLIC_DEMO=true and SHARED_WORKSPACE=judges. The session endpoint automatically issues a signed HTTP-only cookie without asking for a code. Judge database primary keys and Storage paths use a server-controlled judges- prefix; client IDs are mapped on every read, write, deletion and asset lookup. Signed sessions/upload tickets are workspace-scoped. Public mode is rejected for the original workspace. The judges deployment uses an independent internal session code, retained only on the server.
+
+The original palace documents and all 14 referenced images were saved to ignored private-media/recovery/judges-release before copying. Judges share their own copies of My Apartment and Family house. The original team deployment remains code-protected. Never enable public mode there.

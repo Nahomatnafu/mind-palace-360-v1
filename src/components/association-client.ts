@@ -10,6 +10,7 @@ export function parseAssociations(value: unknown): Association[] {
 }
 export async function requireAIResponse(response: Response): Promise<Response> {
   if (response.ok) return response;
+  if (response.status===401 && typeof window!=='undefined') window.dispatchEvent(new Event('palace-session-expired'));
   let message = 'AI could not complete this request. Retry manually or upload an image.';
   try { const body: unknown = await response.json(); if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string' && body.error.length <= 600) message = body.error; } catch { /* Non-JSON proxy errors retain the useful default. */ }
   throw new Error(message);

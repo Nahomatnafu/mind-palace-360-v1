@@ -7,8 +7,9 @@ export default function SharedGate({children}:{children:React.ReactNode}) {
   const [code,setCode]=useState('');const [busy,setBusy]=useState(false);const [error,setError]=useState('');
   useEffect(()=>{
     let active=true;
-    fetch('/api/shared/session',{cache:'no-store'}).then(async r=>{if(!active)return;if(r.ok){setOpened(true);setState('ready');}else{setState('locked');if(r.status!==401)setError((await r.json()).error);}}).catch(()=>{if(active){setState('locked');setError('Cannot reach the shared workspace. Check your connection.');}});
-    const expired=()=>{setError('Your session expired. Enter the demo code to reconnect. Your open draft is retained.');setState('locked');};
+    const connect=()=>fetch('/api/shared/session',{cache:'no-store'}).then(async r=>{if(!active)return;if(r.ok){setOpened(true);setState('ready');}else{setState('locked');if(r.status!==401)setError((await r.json()).error);}}).catch(()=>{if(active){setState('locked');setError('Cannot reach the shared workspace. Check your connection.');}});
+    void connect();
+    const expired=()=>{setState('loading');void connect();};
     window.addEventListener('palace-session-expired',expired);return()=>{active=false;window.removeEventListener('palace-session-expired',expired);};
   },[]);
   async function unlock(e:React.FormEvent){e.preventDefault();if(busy)return;setBusy(true);setError('');try{
