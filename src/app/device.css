@@ -1,0 +1,47 @@
+/* Device/PWA level rules: safe areas, overscroll, standalone display. Loaded after globals.css. */
+:root{--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);--accent:#7050ad;--focus-ring:#9573db}
+html,body{overscroll-behavior:none}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;height:100%}
+body{min-height:100dvh;-webkit-text-size-adjust:100%}
+button,a,input,select,textarea,summary,label,[role=button]{-webkit-tap-highlight-color:transparent}
+/* Keep taps instant and block double-tap zoom on controls; canvases, .model-stage and .panorama keep their own touch-action. */
+button,a,select,input,textarea,summary{touch-action:manipulation}
+img,svg{-webkit-user-drag:none}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus-ring);outline-offset:2px}
+:focus:not(:focus-visible){outline:none}
+
+/* Standalone (installed) display: content runs under the status bar, so pad fixed/top-anchored surfaces. */
+@media(display-mode:standalone){
+  body{padding-top:var(--safe-top)}
+  .workspace{height:calc(100dvh - var(--safe-top))}
+  .topbar{padding-left:calc(22px + var(--safe-left));padding-right:calc(22px + var(--safe-right))}
+  .modal-shade{padding-top:calc(20px + var(--safe-top));padding-bottom:calc(20px + var(--safe-bottom))}
+  .gallery{padding-bottom:calc(80px + var(--safe-bottom))}
+  .shared-sync{margin-top:var(--safe-top)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* Shared demo access screen. */
+.shared-entry{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(32px + var(--safe-top)) calc(16px + var(--safe-right)) calc(32px + var(--safe-bottom)) calc(16px + var(--safe-left));background:radial-gradient(120% 70% at 100% 0%,#3a2d5a 0,transparent 60%),#1b1922;color:#f7f4ff}
+.shared-entry .shared-entry-card{width:100%;max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.shared-entry .shared-entry-brand{display:flex;flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:6px}
+.shared-entry .palace-mark,.shared-entry svg{width:56px;height:56px;flex:none}
+.shared-entry .eyebrow{color:#b9a3ea}
+.shared-entry h1{font-family:var(--font-display),sans-serif;font-size:32px;line-height:38px;font-weight:700;letter-spacing:-.03em;margin:0}
+.shared-entry p{font-size:15px;line-height:22px;margin:0;color:#d6cfdf}
+.shared-entry .shared-entry-lead{color:#e6dff0}
+.shared-entry .shared-entry-fields{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+.shared-entry label{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600;color:#cbbfdb}
+.shared-entry input{width:100%;min-height:44px;padding:10px 14px;border:1px solid #393442;border-radius:10px;background:#262230;color:#f7f4ff;font-size:16px;line-height:22px;appearance:none;-webkit-appearance:none}
+.shared-entry input::placeholder{color:#8f84a3}
+.shared-entry input:focus-visible{outline:none;border-color:var(--focus-ring);box-shadow:0 0 0 3px #9573db55}
+.shared-entry input:disabled{opacity:.6}
+.shared-entry .primary{width:100%;min-height:50px;padding:0 18px;border-radius:12px;font-size:16px;font-weight:600;background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+.shared-entry .primary:not(:disabled):active{filter:brightness(.92)}
+.shared-entry .muted{font-size:13px;line-height:19px;color:#a195b3;opacity:1}
+.shared-entry .shared-entry-status{color:#cbbfdb}
+.shared-entry .shared-entry-error,.shared-entry [role=alert]{color:#fbd6bf;font-size:14px;line-height:20px;padding:10px 12px;border:1px solid #fbd6bf33;border-radius:10px;background:#fbd6bf12}
+@media(min-width:720px){.shared-entry .shared-entry-card{gap:22px}.shared-entry h1{font-size:40px;line-height:46px}}

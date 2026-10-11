@@ -1,0 +1,128 @@
+/* Mobile-first styles for the palace viewer/editor: stage, filmstrip, inspector sheet. Loaded after globals.css. */
+
+/* Desktop (>700px) stays exactly as before; these two rules only hide phone-only elements there. */
+.back-chevron{display:none}
+.back-to-entrance .studio-icon{display:none}
+
+@media(max-width:700px){
+ /* Tokens: spacing 4/8/12/16/24/32; radii 10 thumbs, 14 cards, 16 sheet, 22 pills. */
+ .workspace,.workspace.is-editing{
+  --bar-h:44px;--strip-h:84px;--sheet-h:84px;--sheet-kb:0px;
+  --glass:#1b1922b3;--sheet-ease:cubic-bezier(.2,.8,.2,1);
+  display:block;height:100dvh;overflow:hidden;position:relative;overscroll-behavior:none;
+ }
+ /* Pressed-state transitions for chrome controls only; viewer markers are positioned with transforms and stay untouched. */
+ .topbar button,.filmstrip button,.inspector button,.back-to-entrance,.placement-banner button,.motion-permission button,.error-banner button,.shared-sync button{transition:transform .1s,background .15s,border-color .15s,box-shadow .15s}
+
+ /* Stage: full-bleed behind every other layer. */
+ .stage{position:fixed;inset:0;z-index:0;background:#1b1922;touch-action:none;overscroll-behavior:contain}
+ .empty-stage{padding:calc(var(--bar-h) + env(safe-area-inset-top) + 24px) 16px calc(var(--strip-h) + env(safe-area-inset-bottom) + 24px)}
+ .empty-stage .primary{min-height:48px;border-radius:22px}
+
+ /* Top bar: translucent glass, 44px + status bar. */
+ .topbar{position:fixed;top:0;left:0;right:0;z-index:7;height:calc(var(--bar-h) + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 0;gap:4px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid #ffffff12;box-shadow:none}
+ .brand{display:none}
+ .back-chevron{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;color:#b9a3ea;border-radius:22px}
+ .back-chevron .studio-icon{width:22px;height:22px;flex-basis:22px}
+ .back-chevron:active{transform:scale(.96)}
+ .palace-switch{flex:1 1 auto;min-width:0;max-width:none;justify-content:center;border:0;background:transparent;padding:0 4px;min-height:44px;gap:6px;border-radius:22px}
+ .palace-switch .palace-switch-title{display:block;font-size:15px;line-height:22px;font-weight:600;letter-spacing:-.02em;color:#f7f4ff!important}
+ .palace-switch .studio-icon{width:12px;height:12px;flex-basis:12px}
+ .top-actions{margin-left:0;gap:0;flex:0 0 auto}
+ /* Keep the status announced for screen readers without showing the pill. */
+ .status-pill{display:block;position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+ .mode-switch{padding:0;background:transparent;gap:4px;border-radius:22px}
+ .mode-switch button{min-height:44px;padding:0 12px;border-radius:22px;font-size:13px;line-height:18px;background:#ffffff12;color:#d9d0e6}
+ .mode-switch button[aria-pressed=true]{background:#d4c2fa;color:#2f2344;box-shadow:none}
+ .mode-switch button:active{transform:scale(.96)}
+
+ /* Floating pills over the stage. */
+ .back-to-entrance{top:calc(var(--bar-h) + env(safe-area-inset-top) + 12px);right:16px;height:44px;min-height:44px;display:inline-flex;align-items:center;gap:8px;padding:0 16px 0 14px;border:1px solid #ffffff1f;border-radius:22px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-size:13px;line-height:18px;font-weight:500;z-index:2}
+ .back-to-entrance .studio-icon{display:inline-block;width:18px;height:18px;flex-basis:18px}
+ .back-to-entrance:active{transform:scale(.96)}
+ .stage:has(.placement-banner) .back-to-entrance,.stage:has(.hotspot-help) .back-to-entrance{top:calc(var(--bar-h) + env(safe-area-inset-top) + 68px)}
+ .stage-label{left:16px;bottom:calc(var(--sheet-h) + env(safe-area-inset-bottom) + 12px);display:inline-flex;align-items:center;height:32px;padding:0 12px;border:1px solid #ffffff1a;border-radius:22px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);max-width:calc(100% - 32px);transition:opacity .2s}
+ .stage-label h2{margin:0;font-size:13px;line-height:18px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .stage-label p{display:none}
+ .workspace[data-sheet]:not([data-sheet=collapsed]) .stage-label{opacity:0}
+ .motion-permission{top:auto;left:16px;right:16px;bottom:calc(var(--sheet-h) + env(safe-area-inset-bottom) + 12px);max-width:none;padding:16px;border-radius:14px;background:#201d28f2}
+ .motion-permission p{font-size:13px;line-height:18px}
+ .motion-permission button{min-height:44px;min-width:44px;border-radius:22px;padding:0 16px;font-size:13px}
+ .motion-permission button:active{transform:scale(.96)}
+ .placement-banner,.hotspot-help{top:calc(var(--bar-h) + env(safe-area-inset-top) + 12px);min-height:44px;padding:8px 16px;border-radius:22px;font-size:13px;line-height:18px;font-weight:500}
+ .placement-banner button{min-height:44px;min-width:44px;padding:0 8px}
+ .motion-message{top:calc(var(--bar-h) + env(safe-area-inset-top) + 12px);left:16px;max-width:calc(100% - 32px)}
+ .shared-sync{top:calc(var(--bar-h) + env(safe-area-inset-top) + 12px);left:16px;right:16px;max-width:none;border-radius:14px}
+ .shared-sync button{min-height:44px;border-radius:22px;padding:0 16px}
+ .error-banner{bottom:calc(var(--sheet-h) + env(safe-area-inset-bottom) + 12px);max-width:calc(100% - 32px);border-radius:14px;font-size:13px;line-height:18px}
+ .error-banner button{min-width:44px;min-height:44px;border-radius:22px}
+ .close-button{min-width:44px;min-height:44px}
+
+ /* Filmstrip: 84px strip, 64px thumbs, horizontal snap, Import pill at the end. */
+ .filmstrip{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;flex-direction:row;align-items:center;gap:8px;height:calc(var(--strip-h) + env(safe-area-inset-bottom));padding:0 16px env(safe-area-inset-bottom);background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid #ffffff12;overflow:hidden}
+ .filmstrip-meta{display:contents}
+ .filmstrip-meta strong{display:none}
+ .filmstrip-meta button{order:2;flex:0 0 auto;margin:0;min-height:44px;min-width:44px;padding:0 14px;border:1px solid #ffffff1f;border-radius:22px;background:#ffffff14;color:#f7f4ff;font-size:13px;line-height:18px;font-weight:500;gap:6px}
+ .filmstrip-meta .studio-icon{width:16px;height:16px;flex-basis:16px}
+ .filmstrip-meta button:active{transform:scale(.96)}
+ .room-list{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px;padding:2px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scroll-padding:2px;scrollbar-width:none;touch-action:pan-x;-webkit-overflow-scrolling:touch}
+ .room-list::-webkit-scrollbar{display:none}
+ .room-card{flex:0 0 auto;width:100px;height:64px;padding:0;border:0;border-radius:10px;background:#262230;scroll-snap-align:start;position:relative;overflow:hidden;box-shadow:none;transition:transform .1s,box-shadow .15s}
+ .room-card.active{background:#262230;box-shadow:0 0 0 2px #b9a3ea}
+ .room-card:active{transform:scale(.96)}
+ .room-thumbnail,.room-thumbnail.placeholder{width:100px;height:64px;border-radius:10px}
+ .room-card>span:last-child{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+
+ /* Edit mode: the inspector becomes a bottom sheet. Detents (collapsed 96px, half 50%, full 92%) are written to
+    --sheet-h by BottomSheet; the safe-area inset is added here. The grip row (20px) plus the filmstrip row (76px) fill
+    the collapsed detent; the page content below scrolls inside .inspector-body with footers pinned to the sheet bottom. */
+ .inspector{position:fixed;left:0;right:0;bottom:var(--sheet-kb);z-index:8;height:calc(var(--sheet-h) + env(safe-area-inset-bottom));max-height:100dvh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);border:0;border-top:1px solid #e5e0eb;border-radius:16px 16px 0 0;box-shadow:0 -10px 40px #0a07142e;overflow:hidden;overscroll-behavior:contain;transition:height .32s var(--sheet-ease);will-change:height}
+ .workspace[data-sheet-dragging] .inspector,.workspace[data-sheet-dragging] .stage-label{transition:none}
+ /* Grip row (20px) + filmstrip row (76px) = the 96px collapsed detent. Tapping the grip or the empty header area cycles
+    the detents; dragging anywhere on the sheet moves it, so the 44px rule is met by the header as a whole. */
+ .inspector button.sheet-grip{position:relative;flex:0 0 20px;width:100%;height:20px;min-height:0;display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;touch-action:none;cursor:grab}
+ .inspector button.sheet-grip:active{cursor:grabbing;transform:none}
+ .sheet-handle{display:block;width:36px;height:5px;border-radius:3px;background:#cfc8d8}
+ .sheet-header{flex:0 0 auto}
+ .inspector .filmstrip{position:static;z-index:auto;height:76px;padding:0 16px;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;border-top:0;border-bottom:1px solid #ebe6f0}
+ .inspector .filmstrip-meta button{min-height:44px;padding:0 14px;border-radius:22px;font-size:13px;line-height:18px;background:#eee8f5;color:#554268;border-color:#dad2e5}
+ .inspector button.room-card{width:100px;height:64px;min-height:0;padding:0;border:0;border-radius:10px;background:#e9e4ef;box-shadow:none;display:flex}
+ .inspector button.room-card.active{box-shadow:0 0 0 2px #7050ad}
+ .sheet-content{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overscroll-behavior:contain}
+ .sheet-content>.inspector-page{flex:1 1 auto;min-height:0;height:auto}
+ .inspector-body{touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+ .workspace:has(.placement-banner) .inspector-heading{display:flex}
+ .workspace:has(.placement-banner) .inspector-note{display:block}
+
+ /* Sheet typography and spacing: title 20/26 700, headline 17/22 600, body 15/22 400, caption 13/18 500. */
+ .inspector-heading{padding:12px 16px;align-items:flex-start}
+ .inspector-heading h2{font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.03em;margin-top:4px}
+ .inspector-heading .eyebrow{font-size:10px}
+ .inspector-body{padding:16px;gap:16px}
+ .inspector h3{font-size:17px;line-height:22px;font-weight:600}
+ .inspector p{font-size:13px;line-height:18px;font-weight:500}
+ .inspector label{font-size:15px;line-height:22px;font-weight:600;gap:8px}
+ .inspector button{min-height:44px;font-size:15px;line-height:22px;border-radius:14px;padding:10px 16px}
+ .inspector button:not(:disabled):active{transform:scale(.96)}
+ .inspector .primary{border-radius:22px;min-height:48px}
+ .inspector .icon-button{min-width:44px;min-height:44px;border-radius:22px;font-size:24px}
+ .inspector input,.inspector textarea,.inspector select{border-radius:14px;padding:12px 14px}
+ .inspector .select-field select{padding-right:44px}
+ .tool-row button{font-size:13px;line-height:18px;padding:10px 8px}
+ .segmented{border-radius:14px}
+ .segmented button{min-height:44px;border-radius:10px;font-size:13px}
+ .inspector-footer{padding:12px 16px;gap:8px}
+ .inspector-note{padding:12px 16px;font-size:13px;line-height:18px}
+ .memory-list button{border-radius:14px}
+ .cutout-preview,.upload-zone{border-radius:14px}
+ .coordinate-controls button{min-width:44px}
+ .inspector details summary{min-height:44px}
+
+ /* Modals keep clear of the bars. */
+ .modal-shade{padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px)}
+ .memory-card,.editor-panel{max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px)}
+}
+
+@media(prefers-reduced-motion:reduce){
+ .inspector,.stage-label,.room-card,.topbar button,.filmstrip button,.inspector button,.back-to-entrance{transition:none}
+}

@@ -25,8 +25,18 @@ export interface ModelViewerAdapter extends CameraControls {
   destroy(): void;
 }
 export const EYE_HEIGHT = 1.6;
-const MAX_FOV = 110, MIN_FOV = 30, DRAG_THRESHOLD = 5, STEP = 1.2;
+const MAX_FOV = 110, MIN_FOV = 30, DRAG_THRESHOLD = 5, TOUCH_DRAG_THRESHOLD = 8, STEP = 1.2, PINCH_GAIN = 60;
 export const fovForZoom = (zoom: number) => MAX_FOV - Math.max(0, Math.min(100, zoom)) * (MAX_FOV - MIN_FOV) / 100;
+/** Fingers jitter more than a mouse, so a touch needs to travel further before a tap turns into a look-around drag. */
+export const dragThresholdFor = (pointerType: string) => pointerType === 'touch' ? TOUCH_DRAG_THRESHOLD : DRAG_THRESHOLD;
+/**
+ * Pinch zoom from the ratio of finger distances rather than raw pixels, so the same physical gesture zooms the same
+ * amount on every screen density. Spreading fingers to double their distance adds `gain` zoom; the result stays in 0..100.
+ */
+export function pinchZoom(zoom: number, previousDistance: number, distance: number, gain = PINCH_GAIN): number {
+  if (!(previousDistance > 0) || !(distance > 0) || !Number.isFinite(zoom)) return Math.max(0, Math.min(100, zoom || 0));
+  return Math.max(0, Math.min(100, zoom + (distance / previousDistance - 1) * gain));
+}
 export function directionFor(yaw: number, pitch: number): Vec3 {
   const y = toRadians(yaw), p = toRadians(pitch);
   return { x: Math.sin(y) * Math.cos(p), y: Math.sin(p), z: -Math.cos(y) * Math.cos(p) };
@@ -78,6 +88,10 @@ export function createModelViewer(container: HTMLElement, callbacks: ModelCallba
   renderer.toneMappingExposure = 1.05;
   const canvas = renderer.domElement;
   canvas.setAttribute('aria-label', '3D room. Drag to look around, tap the floor to walk there.');
+  // The stage container already has touch-action:none; repeat it on the canvas and block long-press callouts and
+  // text selection so browser gestures (double-tap zoom, context menus) never interrupt look/walk gestures.
+  canvas.style.touchAction = 'none'; canvas.style.userSelect = 'none'; canvas.style.setProperty('-webkit-user-select', 'none'); canvas.style.setProperty('-webkit-touch-callout', 'none');
+  if (!container.style.touchAction && getComputedStyle(container).touchAction !== 'none') container.style.touchAction = 'none';
   container.append(canvas);
   const overlay = document.createElement('div'); overlay.className = 'model-markers'; container.append(overlay);
   const scene = new THREE.Scene();
@@ -140,24 +154,26 @@ export function createModelViewer(container: HTMLElement, callbacks: ModelCallba
 
   // Look-around drag, pinch zoom and tap handling on the canvas.
   const pointers = new Map<number, { x: number; y: number }>();
-  let gesture: { x: number; y: number; yaw: number; pitch: number; moved: boolean; time: number; type: string } | null = null;
+  // `multi` is set as soon as a second finger lands and never cleared for the gesture, so a pinch can't end in a walk tap.
+  let gesture: { x: number; y: number; yaw: number; pitch: number; moved: boolean; multi: boolean; time: number; type: string } | null = null;
   let pinch = 0;
+  const pointerDistance = () => { const [a, b] = [...pointers.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
   const onPointerDown = (e: PointerEvent) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     try { canvas.setPointerCapture(e.pointerId); } catch { /* Synthetic or already-released pointers cannot be captured; the gesture still works. */ }
-    if (pointers.size === 1) { gesture = { x: e.clientX, y: e.clientY, yaw: state.yaw, pitch: state.pitch, moved: false, time: performance.now(), type: e.pointerType }; container.classList.add('dragging'); }
-    else if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); if (gesture) gesture.moved = true; }
+    if (pointers.size === 1) { gesture = { x: e.clientX, y: e.clientY, yaw: state.yaw, pitch: state.pitch, moved: false, multi: false, time: performance.now(), type: e.pointerType }; container.classList.add('dragging'); }
+    else { pinch = pointers.size === 2 ? pointerDistance() : 0; if (gesture) { gesture.moved = true; gesture.multi = true; } }
     cursor.visible = false; dirty = true;
     e.preventDefault();
   };
   let hoverAt = 0;
   const onPointerMove = (e: PointerEvent) => {
     if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.size === 2) { const [a, b] = [...pointers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch) setView(state.yaw, state.pitch, state.zoom + (d - pinch) * 0.15); pinch = d; return; }
+    if (pointers.size >= 2) { if (pointers.size === 2) { const d = pointerDistance(); if (pinch) setView(state.yaw, state.pitch, pinchZoom(state.zoom, pinch, d)); pinch = d; } return; }
     if (gesture && pointers.has(e.pointerId)) {
       const dx = e.clientX - gesture.x, dy = e.clientY - gesture.y;
-      if (!gesture.moved && Math.hypot(dx, dy) > DRAG_THRESHOLD) gesture.moved = true;
+      if (!gesture.moved && Math.hypot(dx, dy) > dragThresholdFor(gesture.type)) gesture.moved = true;
       if (gesture.moved) { const perPixel = camera.fov / size().height; setView(gesture.yaw - dx * perPixel, gesture.pitch + dy * perPixel); }
       return;
     }
@@ -173,7 +189,9 @@ export function createModelViewer(container: HTMLElement, callbacks: ModelCallba
     if (pointers.size < 2) pinch = 0;
     if (!had || !gesture) return;
     const g = gesture; if (pointers.size === 0) { gesture = null; container.classList.remove('dragging'); }
-    if (g.moved || pointers.size > 0 || performance.now() - g.time > 700) return;
+    // When a pinch drops to one finger, re-anchor the drag on the remaining finger so the view doesn't jump.
+    else if (pointers.size === 1) { const [rest] = [...pointers.values()]; gesture = { ...g, x: rest.x, y: rest.y, yaw: state.yaw, pitch: state.pitch, moved: true, multi: true }; }
+    if (g.multi || g.moved || pointers.size > 0 || performance.now() - g.time > 700) return;
     const hit = cast(e.clientX, e.clientY);
     if (!hit) return;
     if (callbacks.place(surfacePoint(hit), currentCamera())) return;
@@ -213,7 +231,7 @@ export function createModelViewer(container: HTMLElement, callbacks: ModelCallba
   const markerMove = (e: PointerEvent) => {
     if (!drag || e.pointerId !== drag.pointerId) return;
     e.preventDefault();
-    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) <= DRAG_THRESHOLD) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) <= dragThresholdFor(e.pointerType)) return;
     const hit = cast(e.clientX, e.clientY); if (!hit) return;
     drag.moved = true; drag.point = surfacePoint(hit);
     const entry = markerItems.get(drag.id); if (entry) { entry.world.set(drag.point.x, drag.point.y, drag.point.z); dirty = true; }
