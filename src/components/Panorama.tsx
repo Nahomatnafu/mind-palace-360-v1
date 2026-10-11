@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Camera } from '@/domain/model';
 import type { ViewerAdapter, ViewerMarker } from '@/viewer/adapter';
-interface Props { roomKey?:string; src: string; camera: Camera; markers: ViewerMarker[]; moveMarkers?:boolean; onMove?(id:string,yaw:number,pitch:number):void; onSelect(id:string):void; onPlace(yaw:number,pitch:number):void; onReady?(viewer:ViewerAdapter|null):void }
+interface Props { roomKey?:string; src: string; camera: Camera; markers: ViewerMarker[]; moveMarkers?:boolean; onMove?(id:string,yaw:number,pitch:number):void; onSelect(id:string):void; onPlace(yaw:number,pitch:number):void; onReady?(viewer:ViewerAdapter|null,roomKey?:string,src?:string):void }
 export default function Panorama(props:Props) {
   const container=useRef<HTMLDivElement>(null);
   const engine=useRef<ViewerAdapter|null>(null);
@@ -16,7 +16,6 @@ export default function Panorama(props:Props) {
     import('@/viewer/adapter').then(({createViewer})=>{
       if(disposed || !container.current)return;
       engine.current=createViewer(container.current,{select:id=>latest.current.onSelect(id),place:(yaw,pitch)=>latest.current.onPlace(yaw,pitch),move:(id,yaw,pitch)=>latest.current.onMove?.(id,yaw,pitch)});
-      latest.current.onReady?.(engine.current);
       setRevision(n=>n+1);
     }).catch(()=>setError('The 360 viewer could not start. Check WebGL support and reload.'));
     return()=>{disposed=true;latest.current.onReady?.(null);engine.current?.destroy();engine.current=null;};
@@ -24,8 +23,8 @@ export default function Panorama(props:Props) {
   useEffect(()=>{
     const viewer=engine.current;if(!viewer)return;
     let cancelled=false;
-    setLoaded(false);setError('');
-    viewer.load(props.src,props.camera).then(()=>{if(!cancelled){setLoaded(true);viewer.markers(latest.current.markers);}}).catch(()=>{if(!cancelled)setError('Unable to open this room. Reimport the panorama or try another room.');});
+    latest.current.onReady?.(null);setLoaded(false);setError('');
+    viewer.load(props.src,props.camera).then(()=>{if(!cancelled){setLoaded(true);viewer.markers(latest.current.markers);latest.current.onReady?.(viewer,props.roomKey,props.src);}}).catch(()=>{if(!cancelled)setError('Unable to open this room. Reimport the panorama or try another room.');});
     return()=>{cancelled=true;};
   // Camera is the saved arrival view, not a trigger for reloading the texture.
   // eslint-disable-next-line react-hooks/exhaustive-deps
