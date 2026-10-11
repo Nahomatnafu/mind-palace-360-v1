@@ -1,4 +1,5 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
+import { requireSession } from './demo-session';
 
 export class AIError extends Error {
   constructor(public status: number, message: string, public code: string, public retryAfter?: number) { super(message); }
@@ -10,7 +11,9 @@ export function serverConfig(): AIConfig {
 export function authorize(request: Request, config: AIConfig) {
   if (!config.accessCode || !config.apiKey) throw new AIError(503, 'AI is not configured yet. You can still upload your own images.', 'AI_NOT_CONFIGURED');
   const supplied = request.headers.get('x-demo-code') ?? '';
-  if (supplied.length > 256 || !timingSafeEqual(createHash('sha256').update(supplied).digest(), createHash('sha256').update(config.accessCode).digest())) throw new AIError(401, 'Enter the correct demo access code.', 'ACCESS_DENIED');
+  let sharedSession=false;
+  if(!supplied){try{requireSession(request);sharedSession=true;}catch{/* A correct standalone AI code still works. */}}
+  if (!sharedSession && (supplied.length > 256 || !timingSafeEqual(createHash('sha256').update(supplied).digest(), createHash('sha256').update(config.accessCode).digest()))) throw new AIError(401, 'Enter the correct demo access code.', 'ACCESS_DENIED');
   const expected = new URL(config.appOrigin ?? request.url).origin;
   if (request.headers.get('origin') !== expected || request.headers.get('sec-fetch-site') === 'cross-site') throw new AIError(403, 'AI requests must come from this app.', 'ORIGIN_DENIED');
   if (!(request.headers.get('content-type') ?? '').startsWith('application/json')) throw new AIError(415, 'Send a JSON request.', 'INVALID_CONTENT_TYPE');

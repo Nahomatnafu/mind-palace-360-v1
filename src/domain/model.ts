@@ -7,10 +7,11 @@ export interface Vec3 { x: number; y: number; z: number }
 export interface Room { id: string; title: string; panoramaAssetId?: string; demoSrc?: string; modelSrc?: string; initialView: Camera; initialPosition?: Vec3 }
 export interface Memory { id: string; roomId: string; title: string; note: string; imageAssetId?: string; demoSrc?: string; yaw: number; pitch: number; size: number; provenance: 'upload' | 'generated' | 'demo'; position?: Vec3 }
 export interface TourLink { id: string; roomId: string; targetRoomId: string; yaw: number; pitch: number; label: string; size?: number; position?: Vec3 }
-export interface Palace { schemaVersion: 1; id: string; title: string; description?: string; startRoomId: string; rooms: Room[]; memories: Memory[]; links: TourLink[]; updatedAt: string }
+export interface Palace { revision?: number; schemaVersion: 1; id: string; title: string; description?: string; startRoomId: string; rooms: Room[]; memories: Memory[]; links: TourLink[]; updatedAt: string }
 export interface Asset { id: string; blob: Blob; mimeType: string; width: number; height: number; kind: 'panorama' | 'memory' }
 export interface PalaceSummary { id: string; title: string; updatedAt: string }
 export interface PalaceRepository {
+  readonly savedMessage?: string;
   list(): Promise<PalaceSummary[]>;
   load(id: string): Promise<Palace | undefined>;
   save(palace: Palace, assets?: Asset[]): Promise<void>;

@@ -18,6 +18,14 @@ afterEach(async()=>{vi.unstubAllGlobals();for(const s of stores.splice(0)) await
 async function backup(){const s=store(),p=fixturePalace();p.rooms=[];p.startRoomId='';p.memories=[];await s.save(p);return {s,p,blob:await exportPalace(p,s)};}
 function archive(entries:Record<string,Uint8Array>){return new Blob([zipSync(entries,{level:0}).slice().buffer],{type:'application/zip'});}
 describe('validated palace ZIP backups',()=>{
+  it('does not carry shared revisions into independent restored palaces',async()=>{
+    const {s,p}=await backup();p.revision=23;await s.save(p);
+    const blob=await exportPalace(p,s),entries=unzipSync(new Uint8Array(await blob.arrayBuffer()));
+    const manifest=JSON.parse(strFromU8(entries['manifest.json']));expect(manifest.palace.revision).toBeUndefined();
+    // Even an older/external archive carrying a revision must restore as a fresh document.
+    manifest.palace.revision=23;entries['manifest.json']=strToU8(JSON.stringify(manifest));
+    const restored=await importPalace(archive(entries),s);expect(restored.revision).toBeUndefined();expect(restored.id).not.toBe(p.id);expect((await s.load(p.id))?.revision).toBe(23);
+  });
   it('round trips linked rooms and image bytes with fresh IDs',async()=>{
     const s=store(),p=fixturePalace(),a=fixtureAsset();p.memories[0].size=128;
     // Genuine 2:1 PNG fixture, independent of the browser decoder.

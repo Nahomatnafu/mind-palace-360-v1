@@ -17,6 +17,7 @@ export default function PalaceGallery() {
   const [armed, setArmed] = useState('');
   const [confirming, setConfirming] = useState<Card | null>(null);
   const [busy, setBusy] = useState(false);
+  const [refresh,setRefresh]=useState(0);
   const press = useRef<{ timer: ReturnType<typeof setTimeout> | null; x: number; y: number; fired: boolean }>({ timer: null, x: 0, y: 0, fired: false });
   useEffect(() => {
     let cancelled = false; const urls: string[] = [];
@@ -34,7 +35,8 @@ export default function PalaceGallery() {
       } catch (e) { if (!cancelled) setError(message(e)); }
     })();
     return () => { cancelled = true; urls.forEach(URL.revokeObjectURL); };
-  }, []);
+  }, [refresh]);
+  useEffect(()=>{const onFocus=()=>setRefresh(n=>n+1);window.addEventListener('focus',onFocus);return()=>window.removeEventListener('focus',onFocus);},[]);
   useEffect(() => { const current=press.current;return()=>{if(current.timer)clearTimeout(current.timer);}; }, []);
   useEffect(() => { const escape = (e: KeyboardEvent) => { if (e.key === 'Escape' && !busy) { setArmed(''); setConfirming(null); } }; window.addEventListener('keydown', escape); return () => window.removeEventListener('keydown', escape); }, [busy]);
   async function restore(file?:File) {
@@ -64,8 +66,8 @@ export default function PalaceGallery() {
     finally { setBusy(false); }
   }
   return <main className="gallery" onClick={e => { if (e.target === e.currentTarget) setArmed(''); }}>
-    <header><span className="eyebrow">MIND PALACE</span><h1 className="gallery-title">Your Memory Palaces</h1><p>Palaces are saved in this browser. Open one to keep exploring, or start a new space. Press and hold a palace to delete it.</p></header>
-    <div className="gallery-actions"><button className="primary" disabled={busy} onClick={()=>backupInput.current?.click()}>{busy?'Working…':'Restore ZIP'}</button><p>Bring a saved tour from another device.</p></div>
+    <header><span className="eyebrow">MIND PALACE</span><h1 className="gallery-title">Your Memory Palaces</h1><p>One shared space for you and Aneesha. Open a palace to explore or edit together. Press and hold a palace to delete it for everyone.</p></header>
+    <div className="gallery-actions"><button disabled={busy} onClick={()=>{setError('');setRefresh(n=>n+1);}}>Refresh shared space</button><button className="primary" disabled={busy} onClick={()=>backupInput.current?.click()}>{busy?'Working…':'Restore ZIP'}</button><p>Import a tour into your shared space.</p></div>
     <input ref={backupInput} type="file" accept=".zip" hidden aria-label="Restore palace backup" onChange={e=>void restore(e.target.files?.[0])}/>
     {error && <p role="alert" className="gallery-error">{error}</p>}
     {cards === null && !error ? <p role="status">Loading your palaces…</p> : <div className="palace-grid">
@@ -85,7 +87,7 @@ export default function PalaceGallery() {
     </div>}
     {confirming && <div className="modal-shade" onClick={() => { if (!busy) setConfirming(null); }}><section className="editor-panel" role="dialog" aria-modal="true" aria-labelledby="delete-title" onClick={e => e.stopPropagation()}>
       <span className="eyebrow">DELETE PALACE</span><h2 id="delete-title">Delete {confirming.title}?</h2>
-      <p>Its rooms and memories will be removed from this browser. Export a ZIP backup from inside the palace first if you want to keep a copy.</p>
+      <p>Its rooms and memories will be removed from the shared gallery for everyone. Export a ZIP backup from inside the palace first if you want to keep a copy.</p>
       {error && <p role="alert" className="gallery-error">{error}</p>}
       <button type="button" className="danger" disabled={busy} onClick={() => void deletePalace(confirming)}>{busy ? 'Deleting…' : 'Delete palace'}</button>
       <button type="button" disabled={busy} onClick={() => setConfirming(null)}>Cancel</button>

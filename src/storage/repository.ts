@@ -1,3 +1,4 @@
+import { SharedPalaceRepository } from './shared-repository';
 import Dexie, { type Table } from 'dexie';
 import type { Asset, Palace, PalaceRepository, PalaceSummary } from '../domain/model';
 import { assetIds, validateAsset, validateStoredPalace } from './validation';
@@ -45,4 +46,4 @@ export class LocalPalaceRepository implements PalaceRepository {
   }
   async remove(id: string): Promise<void> { await this.db.transaction('rw',this.db.palaces,this.db.assets,async()=>{ const old=await this.db.palaces.get(id); await this.db.palaces.delete(id); if(old) await this.removeUnreferenced(assetIds(old)); }); }
 }
-export const repository = new LocalPalaceRepository();
+export const repository = new SharedPalaceRepository();
