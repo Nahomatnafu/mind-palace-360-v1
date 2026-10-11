@@ -1,6 +1,6 @@
 import { normalizeYaw, toDegrees, toRadians, type Camera } from '@/domain/model';
 
-export type MotionStatus = 'disabled' | 'requesting' | 'unsupported' | 'insecure' | 'denied' | 'waiting' | 'active' | 'paused' | 'error';
+export type MotionStatus = 'disabled' | 'permission-required' | 'requesting' | 'unsupported' | 'insecure' | 'denied' | 'waiting' | 'active' | 'paused' | 'error';
 export interface MotionState { status: MotionStatus; message: string }
 export interface MotionOptions {
   getCamera: () => Camera;
@@ -8,11 +8,17 @@ export interface MotionOptions {
   onState: (state: MotionState) => void;
 }
 export interface MotionController {
-  enable: () => Promise<void>;
+  enable: (options?: { requestPermission?: boolean }) => Promise<void>;
+  setInteracting: (active: boolean) => void;
   disable: () => void;
   recenter: () => void;
   destroy: () => void;
 }
+/** Touch-first sensor surfaces only; resizing a desktop window does not enable motion. */
+export function isMotionDevice({touchPoints,coarsePointer,orientationAvailable}:{touchPoints:number;coarsePointer:boolean;orientationAvailable:boolean}):boolean {
+  return touchPoints > 0 && coarsePointer && orientationAvailable;
+}
+
 type Quaternion = [number,number,number,number];
 type Angles = {yaw:number;pitch:number};
 export interface SensorAngles { alpha:number|null; beta:number|null; gamma:number|null }
@@ -58,6 +64,8 @@ export function smoothAngles(current:Angles,target:Angles,amount:number):Angles 
 
 export function createMotionController({getCamera,onCamera,onState}:MotionOptions):MotionController {
   let enabled=false,requesting=false,destroyed=false,epoch=0;
+  let permissionGranted=false,interacting=false;
+  let lastApplied:Angles|undefined;
   let frame:number|undefined,timer:number|undefined,lastTime:number|undefined;
   let sensor:Angles|undefined,anchor:Angles|undefined,anchorCamera:Camera|undefined;
   let smoothed:Angles|undefined,target:Angles|undefined;
@@ -70,7 +78,7 @@ export function createMotionController({getCamera,onCamera,onState}:MotionOption
     frame=undefined;lastTime=undefined;
   };
   const clearTimer=()=>{if(timer!==undefined)window.clearTimeout(timer);timer=undefined;};
-  const resetAnchor=()=>{anchor=undefined;anchorCamera=undefined;sensor=undefined;target=undefined;smoothed=undefined;lastTime=undefined;};
+  const resetAnchor=()=>{anchor=undefined;anchorCamera=undefined;sensor=undefined;target=undefined;smoothed=undefined;lastTime=undefined;lastApplied=undefined;};
   const armTimeout=()=>{
     clearTimer();
     timer=window.setTimeout(()=>{
@@ -82,15 +90,25 @@ export function createMotionController({getCamera,onCamera,onState}:MotionOption
   };
   const tick=(time:number)=>{
     frame=undefined;
-    if(!enabled || document.hidden || !target) return;
+    if(!enabled || interacting || document.hidden || !target) return;
     const elapsed=lastTime===undefined ? 16 : Math.min(100,Math.max(0,time-lastTime));
     lastTime=time;
-    smoothed=smoothAngles(smoothed??target,target,1-Math.exp(-elapsed/75));
     try {
       const current=getCamera();
+      // Keep manual drag/inertia changes as the new baseline between sensor frames.
+      if(lastApplied && anchorCamera && smoothed) {
+        const yaw=normalizeYaw(current.yaw-lastApplied.yaw),pitch=current.pitch-lastApplied.pitch;
+        if(Math.abs(yaw)>0.05 || Math.abs(pitch)>0.05) {
+          anchorCamera={...anchorCamera,yaw:normalizeYaw(anchorCamera.yaw+yaw),pitch:anchorCamera.pitch+pitch};
+          target={yaw:normalizeYaw(target.yaw+yaw),pitch:Math.max(-90,Math.min(90,target.pitch+pitch))};
+          smoothed={yaw:normalizeYaw(smoothed.yaw+yaw),pitch:smoothed.pitch+pitch};
+        }
+      }
+      smoothed=smoothAngles(smoothed??target,target,1-Math.exp(-elapsed/75));
       if(Math.abs(normalizeYaw(current.yaw-smoothed.yaw))>0.001 || Math.abs(current.pitch-smoothed.pitch)>0.001) {
         onCamera({...current,...smoothed});
       }
+      lastApplied={...smoothed};
     }
     catch {
       stop();
@@ -109,6 +127,7 @@ export function createMotionController({getCamera,onCamera,onState}:MotionOption
     if(Math.abs(next.pitch)>89.5 && sensor) next.yaw=sensor.yaw;
     sensor=next;
     clearTimer();
+    if(interacting)return;
     if(!anchor || !anchorCamera) {
       anchor=next;
       anchorCamera={...getCamera()};
@@ -133,7 +152,7 @@ export function createMotionController({getCamera,onCamera,onState}:MotionOption
     else {armTimeout();state('waiting','Resuming motion. Move your phone gently.');}
   };
   function stop() {
-    epoch++;requesting=false;enabled=false;
+    epoch++;requesting=false;enabled=false;interacting=false;
     if(supported) {
       window.removeEventListener('deviceorientation',orientation);
       window.removeEventListener('orientationchange',screenChanged);
@@ -144,7 +163,7 @@ export function createMotionController({getCamera,onCamera,onState}:MotionOption
     resetAnchor();
   }
   return {
-    async enable() {
+    async enable(options: {requestPermission?:boolean} = {}) {
       if(destroyed || enabled || requesting)return;
       if(!supported || !api) {state('unsupported','Motion is unavailable on this device. Use touch controls.');return;}
       const local=['localhost','127.0.0.1','[::1]','::1'].includes(window.location.hostname);
@@ -152,10 +171,12 @@ export function createMotionController({getCamera,onCamera,onState}:MotionOption
       const attempt=++epoch;
       requesting=true;
       try {
-        if(api.requestPermission) {
+        if(api.requestPermission && !permissionGranted) {
+          if(options.requestPermission===false) {requesting=false;state('permission-required','Allow phone movement to look around without touching the screen.');return;}
           state('requesting','Allow motion access in your browser.');
           // No awaited work precedes this call: invoke enable directly from a click.
           const permission=await api.requestPermission();
+          permissionGranted=permission==='granted';
           if(destroyed || attempt!==epoch)return;
           if(permission!=='granted') {requesting=false;state('denied','Motion permission was denied. Use touch controls or change browser permissions.');return;}
         }
@@ -170,7 +191,16 @@ export function createMotionController({getCamera,onCamera,onState}:MotionOption
       } catch {
         if(attempt!==epoch || destroyed)return;
         stop();
-        state('error','Motion access failed. Enable it from the motion button or use touch controls.');
+        state('error','Motion access failed. Use touch controls or check browser motion permissions.');
+      }
+    },
+    setInteracting(active) {
+      if(!enabled || destroyed)return;
+      interacting=active;cancelFrame();target=undefined;
+      smoothed=undefined;lastApplied=undefined;
+      if(!active) {
+        anchor=sensor;anchorCamera={...getCamera()};
+        smoothed={yaw:anchorCamera.yaw,pitch:anchorCamera.pitch};lastApplied={...smoothed};
       }
     },
     disable() {stop();if(!destroyed)state('disabled','Motion disabled. Drag to look around.');},
