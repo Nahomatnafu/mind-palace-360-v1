@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { createFromTemplate, templateSections, templates, templatesFor } from './templates';
+import { APARTMENT_STARTER_ID, createFromTemplate, templateSections, templates, templatesFor } from './templates';
 import { validatePalace } from './model';
+import { createDemo } from './demo';
+function apartmentSource() { return {...createDemo(), id:APARTMENT_STARTER_ID, revision:42}; }
 describe('space templates', () => {
   it('offers every section with at least one entry and keeps the demo rooms under Cartoon Spaces', () => {
     for (const section of templateSections) expect(templatesFor(section.category).length).toBeGreaterThan(0);
@@ -8,7 +10,7 @@ describe('space templates', () => {
   });
   it('creates valid palaces with fresh IDs from every available template', () => {
     for (const template of templates.filter(t => t.available)) {
-      const first = createFromTemplate(template.id), second = createFromTemplate(template.id);
+      const first = createFromTemplate(template.id, {}, apartmentSource()), second = createFromTemplate(template.id, {}, apartmentSource());
       expect(() => validatePalace(first)).not.toThrow();
       expect(first.id).not.toBe(second.id);
     }
@@ -40,11 +42,38 @@ describe('space templates', () => {
     expect(blank.title).toBe('Studio');
     expect(blank.description).toBeUndefined();
   });
-  it('creates an empty palace for real spaces and rejects unavailable templates', () => {
-    const own = createFromTemplate('own-photos');
-    expect(own.rooms).toEqual([]);
-    expect(own.startRoomId).toBe('');
+  it('offers the apartment instead of an empty real space and rejects unavailable templates', () => {
+    expect(templatesFor('real').map(template=>template.id)).toEqual(['apartment']);
+    expect(()=>createFromTemplate('own-photos')).toThrow();
     expect(() => createFromTemplate('does-not-exist')).toThrow();
     expect(() => createFromTemplate('nope')).toThrow();
+  });
+  it('copies every room/connection with fresh IDs and keeps links and the entrance connected',()=>{
+    const source=apartmentSource();source.rooms[0].panoramaAssetId='original-photo';
+    source.links[0]={...source.links[0],surface:'floor',size:80,position:{x:1,y:2,z:3}};
+    const copy=createFromTemplate('apartment',{title:'My study space'},source);
+    expect(()=>validatePalace(copy)).not.toThrow();expect(copy.id).not.toBe(source.id);
+    expect(copy.title).toBe('My study space');expect(copy.rooms).toHaveLength(source.rooms.length);expect(copy.links).toHaveLength(source.links.length);
+    expect(copy.startRoomId).toBe(copy.rooms[0].id);
+    expect(copy.rooms[0].panoramaAssetId).toBe('original-photo');
+    expect(copy.links[0]).toMatchObject({roomId:copy.rooms[0].id,targetRoomId:copy.rooms[1].id,surface:'floor',size:80,position:{x:1,y:2,z:3}});
+    const oldIds=new Set([...source.rooms,...source.links].map(item=>item.id));
+    expect([...copy.rooms,...copy.links].every(item=>!oldIds.has(item.id))).toBe(true);
+    expect(copy.memories).toEqual([]);expect(copy.revision).toBeUndefined();
+  });
+  it('isolates edits in two starter copies from the original and from each other',()=>{
+    const source=apartmentSource(),snapshot=structuredClone(source);
+    const a=createFromTemplate('apartment',{},source),b=createFromTemplate('apartment',{},source);
+    a.rooms[0].initialView.yaw=105;a.links[0].targetRoomId=a.rooms[0].id;a.rooms.pop();
+    expect(source).toEqual(snapshot);expect(b.rooms).toHaveLength(snapshot.rooms.length);
+    expect(b.rooms[0].initialView.yaw).toBe(snapshot.rooms[0].initialView.yaw);
+    expect(b.links[0].targetRoomId).toBe(b.rooms[1].id);
+    expect(a.id).not.toBe(b.id);expect(a.rooms[0].id).not.toBe(b.rooms[0].id);
+  });
+  it('never silently creates an empty palace when the starter is missing, mismatched, or invalid',()=>{
+    expect(()=>createFromTemplate('apartment')).toThrow('unavailable');
+    expect(()=>createFromTemplate('apartment',{},createDemo())).toThrow('unavailable');
+    expect(()=>createFromTemplate('apartment',{}, {...apartmentSource(),rooms:[]})).toThrow('unavailable');
+    expect(()=>createFromTemplate('apartment',{}, {...apartmentSource(),startRoomId:'missing'})).toThrow();
   });
 });
