@@ -1,8 +1,39 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { directionFor, floorLevelsOf, fovForZoom, isWalkable } from './model-adapter';
+import { directionFor, dragThresholdFor, floorLevelsOf, fovForZoom, isWalkable, pinchZoom, projectedMarkerSize } from './model-adapter';
 const close = (a: number, b: number) => Math.abs(a - b) < 1e-6;
 describe('3D walkthrough helpers', () => {
+  it('sizes 3D memories by perspective: half the size at twice the distance, clamped at the extremes', () => {
+    const near = projectedMarkerSize(36, 2, 86, 844), far = projectedMarkerSize(36, 4, 86, 844);
+    expect(near / far).toBeCloseTo(2, 5);
+    expect(projectedMarkerSize(36, 2, 86, 844)).toBeCloseTo(0.36 * (844 / (2 * Math.tan(43 * Math.PI / 180))) / 2, 5);
+    expect(projectedMarkerSize(36, 500, 86, 844)).toBe(8);
+    expect(projectedMarkerSize(128, 0.1, 86, 844)).toBe(320);
+    expect(projectedMarkerSize(36, 0, 86, 844)).toBe(320);
+  });
+  it('zooms a pinch by the finger-distance ratio so the gesture feels the same at any pixel density', () => {
+    expect(pinchZoom(35, 100, 100)).toBe(35);
+    expect(pinchZoom(35, 100, 200)).toBe(95);
+    expect(pinchZoom(35, 200, 400)).toBe(pinchZoom(35, 100, 200));
+    expect(pinchZoom(35, 300, 600)).toBe(pinchZoom(35, 100, 200));
+    expect(close(pinchZoom(50, 200, 100), 20)).toBe(true);
+    expect(pinchZoom(35, 100, 110, 100)).toBeCloseTo(45, 6);
+  });
+  it('clamps pinch zoom to 0..100 and ignores degenerate distances', () => {
+    expect(pinchZoom(90, 100, 300)).toBe(100);
+    expect(pinchZoom(10, 300, 100)).toBe(0);
+    expect(pinchZoom(42, 0, 120)).toBe(42);
+    expect(pinchZoom(42, 120, 0)).toBe(42);
+    expect(pinchZoom(42, NaN, 120)).toBe(42);
+    expect(pinchZoom(NaN, 100, 120)).toBe(0);
+    expect(pinchZoom(140, 100, 100)).toBe(100);
+  });
+  it('needs a longer drag before touch turns into look-around than a mouse or pen', () => {
+    expect(dragThresholdFor('touch')).toBe(8);
+    expect(dragThresholdFor('mouse')).toBe(5);
+    expect(dragThresholdFor('pen')).toBe(5);
+    expect(dragThresholdFor('')).toBe(5);
+  });
   it('maps zoom to the same field of view range as the panorama viewer', () => {
     expect(fovForZoom(0)).toBe(110); expect(fovForZoom(100)).toBe(30); expect(fovForZoom(50)).toBe(70);
     expect(fovForZoom(-20)).toBe(110); expect(fovForZoom(500)).toBe(30);

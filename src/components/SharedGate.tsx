@@ -16,5 +16,15 @@ export default function SharedGate({children}:{children:React.ReactNode}) {
     const result=await response.json();if(!response.ok)throw new Error(result.error);setCode('');setOpened(true);setState('ready');
   }catch(e){setError(e instanceof Error?e.message:'Unable to connect. Try again.');}finally{setBusy(false);}}
   // Keep the editor mounted during reauthentication so an unsaved draft survives.
-  return <>{opened&&<div hidden={state!=='ready'}>{children}</div>}{state!=='ready'&&<main className="shared-entry"><form onSubmit={e=>void unlock(e)}><PalaceMark/><span className="eyebrow">MIND PALACE · SHARED DEMO</span><h1>Your shared<br/>memory space.</h1><p>You and Aneesha see the same rooms, images and memories here.</p>{state==='loading'?<p role="status">Connecting…</p>:<><label>Demo access code<input type="password" autoComplete="current-password" required value={code} onChange={e=>setCode(e.target.value)} disabled={busy}/></label><button className="primary" disabled={busy}>{busy?'Opening…':'Open shared space'}</button><p className="muted">Use the existing demo code on each device. Anyone you give this code to can edit this demo.</p></>}{error&&<p role="alert">{error}</p>}</form></main>}</>;
+  return <>{opened&&<div hidden={state!=='ready'}>{children}</div>}{state!=='ready'&&<main className="shared-entry"><form className="shared-entry-card" onSubmit={e=>void unlock(e)}>
+    <header className="shared-entry-brand"><PalaceMark/><span className="eyebrow">MIND PALACE · SHARED DEMO</span></header>
+    <h1>Your shared<br/>memory space.</h1>
+    <p className="shared-entry-lead">You and Aneesha see the same rooms, images and memories here.</p>
+    {state==='loading'?<p role="status" className="shared-entry-status">Connecting…</p>:<div className="shared-entry-fields">
+      <label><span>Demo access code</span><input type="password" autoComplete="current-password" autoCapitalize="off" spellCheck={false} enterKeyHint="go" required value={code} onChange={e=>setCode(e.target.value)} disabled={busy}/></label>
+      <button className="primary" disabled={busy}>{busy?'Opening…':'Open shared space'}</button>
+      <p className="muted">Use the existing demo code on each device. Anyone you give this code to can edit this demo.</p>
+    </div>}
+    {error&&<p role="alert" className="shared-entry-error">{error}</p>}
+  </form></main>}</>;
 }
