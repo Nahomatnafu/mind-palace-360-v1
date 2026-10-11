@@ -31,7 +31,7 @@ export default function Workspace({palaceId}:{palaceId:string}){
   const [remoteChanged,setRemoteChanged]=useState(false);
   const [syncError,setSyncError]=useState('');
   const [selected,setSelected]=useState<Memory|null>(null);
-  const [editing,setEditing]=useState(true);
+  const [editing,setEditing]=useState(false);
   const [aiCode,setAiCode]=useState('');
   const [movingHotspots,setMovingHotspots]=useState(false);
   const [motionState,setMotionState]=useState<MotionState>({status:'disabled',message:''});

@@ -110,7 +110,7 @@ export function createModelViewer(container: HTMLElement, callbacks: ModelCallba
   let dirty = true, disposed = false, request = 0, editing = false;
   let tween: { from: THREE.Vector3; to: THREE.Vector3; start: number; duration: number } | null = null;
   const markerItems = new Map<string, { item: ViewerMarker; element: HTMLButtonElement; world: THREE.Vector3 }>();
-  let lastOcclusion = 0;
+  let lastOcclusion = 0, occlusionPending = false;
 
   const size = () => ({ width: Math.max(1, container.clientWidth), height: Math.max(1, container.clientHeight) });
   function resize() { const { width, height } = size(); renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); dirty = true; }
@@ -251,8 +251,9 @@ export function createModelViewer(container: HTMLElement, callbacks: ModelCallba
   function layoutMarkers(now: number) {
     if (!markerItems.size) return;
     const { width, height } = size();
+    // Occlusion rays are throttled while moving; a pending pass always runs once the view settles.
     const occlude = now - lastOcclusion > 150 && solids.length > 0;
-    if (occlude) lastOcclusion = now;
+    if (occlude) lastOcclusion = now; else occlusionPending = solids.length > 0;
     const projected = new THREE.Vector3();
     for (const entry of markerItems.values()) {
       projected.copy(entry.world).project(camera);
@@ -275,6 +276,7 @@ export function createModelViewer(container: HTMLElement, callbacks: ModelCallba
       state.position.lerpVectors(tween.from, tween.to, easeInOut(t)); applyCamera();
       if (t >= 1) { tween = null; callbacks.moved?.(vec(state.position)); }
     }
+    if (!dirty && !tween && occlusionPending && now - lastOcclusion > 150) { occlusionPending = false; dirty = true; }
     if (dirty || tween) { dirty = false; renderer.render(scene, camera); layoutMarkers(now); }
     requestAnimationFrame(frame);
   }
