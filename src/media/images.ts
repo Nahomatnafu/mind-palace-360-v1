@@ -4,7 +4,7 @@ export type ImageKind = Asset['kind'];
 export type ImageMime = 'image/jpeg' | 'image/png' | 'image/webp';
 export interface ImageHeader { mimeType: ImageMime; width: number; height: number }
 export const IMAGE_LIMITS = {
-  panorama: { bytes: 32 * 1024 * 1024, pixels: 64 * 1024 * 1024, edge: 16384, outputEdge: 4096 },
+  panorama: { bytes: 32 * 1024 * 1024, pixels: 80_000_000, edge: 16384, outputEdge: 16384 },
   memory: { bytes: 12 * 1024 * 1024, pixels: 25 * 1024 * 1024, edge: 16384, outputEdge: 768 },
 } as const;
 
@@ -119,6 +119,12 @@ export async function importImage(file: File, kind: ImageKind): Promise<Asset> {
   try {
     validateImage({...header,width:decoded.width,height:decoded.height},kind,file.size,header.mimeType);
     if (decoded.width*decoded.height !== header.width*header.height) throw new Error('Decoded image dimensions do not match the image header.');
+    // Preserve the validated panorama bytes: canvas JPEG encoding is lossy, even at the same size.
+    // The viewer may limit its GPU texture to the device capability; the stored original remains intact.
+    if (kind === 'panorama') {
+      if (decoded.width !== header.width || decoded.height !== header.height) throw new Error('Export this panorama with its orientation applied before importing.');
+      return {id:crypto.randomUUID(),blob:new Blob([bytes],{type:header.mimeType}),mimeType:header.mimeType,width:header.width,height:header.height,kind};
+    }
     const size = derivativeSize(decoded.width,decoded.height,limits.outputEdge);
     canvas = document.createElement('canvas');
     canvas.width = size.width;
@@ -126,8 +132,8 @@ export async function importImage(file: File, kind: ImageKind): Promise<Asset> {
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Image processing is unavailable in this browser.');
     context.drawImage(decoded.image,0,0,size.width,size.height);
-    // PNG retains transparent pixels; panoramas use a compact JPEG derivative.
-    const mimeType = kind==='panorama' ? 'image/jpeg' : 'image/png';
+    // Lossless PNG retains transparent pixels in the compact memory image.
+    const mimeType = 'image/png';
     const blob = await new Promise<Blob>((resolve,reject)=>{
       canvas!.toBlob(result=>result ? resolve(result) : reject(new Error('Could not create the image preview.')),mimeType,0.86);
     });

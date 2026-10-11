@@ -18,14 +18,14 @@ async function backup(){const s=store(),p=fixturePalace();p.rooms=[];p.startRoom
 function archive(entries:Record<string,Uint8Array>){return new Blob([zipSync(entries,{level:0}).slice().buffer],{type:'application/zip'});}
 describe('validated palace ZIP backups',()=>{
   it('round trips linked rooms and image bytes with fresh IDs',async()=>{
-    const s=store(),p=fixturePalace(),a=fixtureAsset();
+    const s=store(),p=fixturePalace(),a=fixtureAsset();p.memories[0].size=128;
     // Genuine 2:1 PNG fixture, independent of the browser decoder.
     const panoramaBytes=Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAADklEQVQImWP4z8DwH4QBEfcD/RSF9bkAAAAASUVORK5CYII='),c=>c.charCodeAt(0));
     const pan={...a,id:'panorama',kind:'panorama' as const,width:2,blob:new Blob([panoramaBytes],{type:'image/png'})};
     delete p.rooms[0].demoSrc;p.rooms[0].panoramaAssetId=pan.id;
     p.rooms.push({...p.rooms[0],id:'second-room'});p.links=[{id:'link',roomId:'room',targetRoomId:'second-room',yaw:20,pitch:0,label:'Next'}];
     await s.save(p,[a,pan]);const blob=await exportPalace(p,s),imported=await importPalace(blob,s);
-    expect(imported.id).not.toBe(p.id);expect(imported.rooms[0].id).not.toBe('room');expect(imported.memories[0].id).not.toBe('memory');expect(imported.links[0].id).not.toBe('link');
+    expect(imported.memories[0].size).toBe(128);expect(imported.id).not.toBe(p.id);expect(imported.rooms[0].id).not.toBe('room');expect(imported.memories[0].id).not.toBe('memory');expect(imported.links[0].id).not.toBe('link');
     expect(imported.links[0].targetRoomId).toBe(imported.rooms[1].id);expect(imported.startRoomId).toBe(imported.rooms[0].id);expect(imported.memories[0].note).toBe('<b>plain text</b>');
     expect(imported.memories[0].imageAssetId).not.toBe(a.id);expect(await (await s.asset(imported.memories[0].imageAssetId!))!.blob.arrayBuffer()).toEqual(await a.blob.arrayBuffer());expect(await s.list()).toHaveLength(2);
   });

@@ -48,8 +48,11 @@ export class AILimiter {
     const key = kind + ':' + createHash('sha256').update(requestId ?? payload).digest('hex');
     if (this.seen.has(key)) throw new AIError(409, 'This request was already submitted. Wait before retrying, or use a new request ID for an explicit retry.', 'DUPLICATE_REQUEST', 30);
     if (this.active >= 2) throw new AIError(429, 'AI is busy. Please try again shortly.', 'AI_BUSY', 15);
-    const bucket = this.windows.get(kind); const window = !bucket || now - bucket.start >= 600_000 ? { start: now, count: 0 } : bucket;
-    if (window.count >= (kind === 'image' ? 3 : 12)) throw new AIError(429, 'This demo has reached its temporary AI limit. Please use an uploaded image or try later.', 'RATE_LIMITED', Math.ceil((window.start + 600_000 - now) / 1000));
+    const bucket = this.windows.get(kind); const window = !bucket || now - bucket.start >= 60_000 ? { start: now, count: 0 } : bucket;
+    if (window.count >= (kind === 'image' ? 6 : 20)) {
+      const seconds = Math.max(1, Math.ceil((window.start + 60_000 - now) / 1000));
+      throw new AIError(429, `Too many requests at once. Try again in ${seconds} seconds. Your OpenRouter credit balance was not checked.`, 'RATE_LIMITED', seconds);
+    }
     window.count++; this.windows.set(kind, window); this.active++; this.seen.set(key, Infinity);
     // Extend protection throughout long image generation and briefly afterward.
     let released = false; return () => { if (released) return; released = true; this.active--; this.seen.set(key, this.now() + 30_000); };

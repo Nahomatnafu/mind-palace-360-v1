@@ -1,6 +1,6 @@
 import { describe,expect,it } from 'vitest';
 import { coordinateDraft } from '@/domain/model';
-import { toggleCoordinateSign } from '@/components/CoordinateField';
+import { toggleCoordinateSign, formatCoordinate } from '@/components/CoordinateField';
 
 describe('signed coordinate commit and phone sign control',()=>{
   it('commits negative decimals and signed zero without treating them as empty',()=>{
@@ -25,3 +25,5 @@ describe('signed coordinate commit and phone sign control',()=>{
     expect(toggleCoordinateSign('-12.5')).toBe('12.5');
   });
 });
+
+it('displays one decimal place without negative zero or long drag coordinates',()=>{expect(formatCoordinate(38.13803030033)).toBe('38.1');expect(formatCoordinate(-38.13803030033)).toBe('-38.1');expect(formatCoordinate(-0.01)).toBe('0.0');expect(formatCoordinate(180)).toBe('180.0');expect(formatCoordinate(-90)).toBe('-90.0');});

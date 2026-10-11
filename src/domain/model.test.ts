@@ -1,3 +1,4 @@
+import { createDemo } from './demo';
 import { describe, expect, it } from 'vitest';
 import { coordinateDraft, normalizeYaw, toDegrees, toRadians, validatePalace, type Palace } from './model';
 export const fixture = (): Palace => ({ schemaVersion: 1, id: 'palace', title: 'Fixture', startRoomId: 'room', updatedAt: new Date().toISOString(), rooms: [{id:'room',title:'Room',demoSrc:'/demo/room.jpg',initialView:{yaw:0,pitch:0,zoom:35}}], memories: [], links: [] });
@@ -15,3 +16,5 @@ describe('palace integrity',()=>{
   it('rejects duplicate IDs',()=>{const p=fixture();p.rooms.push({...p.rooms[0]});expect(()=>validatePalace(p)).toThrow();});
   it('rejects broken room links',()=>{const p=fixture();p.links.push({id:'link',roomId:'room',targetRoomId:'missing',yaw:0,pitch:0,label:'Next'});expect(()=>validatePalace(p)).toThrow();});
 });
+
+it('accepts memory sizes through 128px and rejects oversized markers',()=>{const p=createDemo();p.memories[0].size=128;expect(()=>validatePalace(p)).not.toThrow();p.memories[0].size=129;expect(()=>validatePalace(p)).toThrow('Invalid memory');});

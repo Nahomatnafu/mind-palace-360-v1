@@ -14,35 +14,35 @@ Checks: npm run typecheck, npm run lint, npm test, npm run build. Build uses web
 
 ## Create a memory
 
-Choose Edit palace if you are viewing. Select + Add memory, then tap a spot in the room. Upload JPEG/PNG/WebP, enter a title and plain-text note, and Save memory. Tap the image to open its note; Edit memory supports replacement, resizing, repositioning and deletion. Advanced positioning preserves string drafts until Apply and has a sign toggle for mobile keyboards.
+Choose Edit, then + Add memory in the sidebar and tap a spot in the room. Enter what you want to remember (Gold) and an optional note (Au, atomic number 79). Upload an image or describe the picture you want (a plain gold bracelet) and generate it. Save memory, switch to Explore, and tap the image to reveal its note. Size & placement supports 16-128px fixed screen size (36px by default) and signed yaw/pitch inputs displayed to one decimal; Apply confirms a number. Drag the image while its sidebar is open, then Save memory.
 
-Create a palace through Palaces → New palace. Import equirectangular360 JPEGs. Room settings rename palaces/rooms and set the entrance view. Connect rooms places small circular markers; edit/remove connections through Room settings. View palace hides editing tools.
+The palace name in the top bar opens New palace, Export ZIP and Restore ZIP. Import equirectangular 360 JPEGs using Import rooms above the thumbnail strip. Select a thumbnail to change rooms. Room settings rename rooms, set the entrance view and replace the room photo without rebuilding hotspots. Connect rooms places circular links; select a circle in Edit to change its destination or signed coordinates. Explore hides editing controls and makes circles navigate.
 
 ## AI
 
 Copy .env.example to ignored .env.local. Set OPENROUTER_API_KEY and a separate DEMO_ACCESS_CODE. Optional OPENROUTER_TEXT_MODEL and OPENROUTER_IMAGE_MODEL configure models. No NEXT_PUBLIC key is used. Local credentials were configured using the existing authorized key. The local demo code is in ignored private-media/DEMO_ACCESS.txt.
 
-In a memory editor, expand Create an image with AI. Enter a concept, optional context and demo code. Ask for three suggestions, select/edit one, explicitly Generate one image, then Use image and Save memory. Room photos are never sent to AI. Requests are not automatically retried. Cancelling a request cannot undo provider work already completed.
+In the memory sidebar, choose Create with AI. Enter the demo access code under AI access once per page session. Describe the object directly or use Suggest 3 objects for familiar choices. Generate image places the result in the draft without changing the memory title or note; Save memory commits it. Room photos are never sent to AI. Requests are not automatically retried. The per-server burst guard allows six image attempts and twenty suggestion attempts per minute, with two concurrent requests. A burst-limit message gives the remaining seconds; OpenRouter credit/key-limit rejections have a distinct message. Limits are per server instance, not a global billing cap. Successful model capability discovery is cached for five minutes. The UI shows actual elapsed time while a generation runs. Cancelling cannot undo provider work already completed.
 
-The verified image interface is OpenRouter POST /api/v1/images with openai/gpt-image-2.5-flare; generation normalizes to768px PNG. One deployed real smoke test returned768×768,895924bytes and true transparency. Prepared demo artwork uses a256px,23782byte derivative of that image. Text default google/gemini-2.5-flash-lite is available now but the provider catalog lists expiry October20,2026; update configurable model before that date.
+The verified image interface is OpenRouter POST /api/v1/images with openai/gpt-image-2.5-flare; generation requires transparent-background support, explicitly requests PNG, and validates meaningful alpha/clear borders before delivering a 768px cutout. Opaque, blank and globally translucent results are rejected. The revised live Gold test produced bracelet/necklace/bar suggestions and a transparent bracelet. Text default google/gemini-2.5-flash-lite is available now but the provider catalog lists expiry October20,2026; update configurable model before that date.
 
 Paid routes validate the access code, same-origin requests, JSON size and inputs. Limits are per server instance:12 suggestion requests /3 image requests per10min,2 concurrent. These are not a global billing cap.
 
 ## Photos, saving and transfer
 
-Original sources: D:/OpenView Homes_First AD_Batch/. Never modify originals. Additional copies can go in ignored private-media/apartment/. Import through the interface; placing files in that folder does not auto-import them. One original apartment image was tested locally. Private images and ZIP backups are excluded from repository/deployment.
+Original sources: D:/OpenView Homes_First AD_Batch/. Never modify originals. Additional copies can go in ignored private-media/apartment/. Import through the interface; placing files in that folder does not auto-import them. The nine supplied apartment files are 1280 x 640. New panorama imports preserve the original JPEG bytes (up to 32 MB / 80 million pixels); replacement/export byte equality was verified. High-resolution camera originals must be supplied to improve an already reduced photo. Device GPU texture limits still apply. Private images and ZIP backups are excluded from repository/deployment.
 
-Palaces/images live in IndexedDB on this browser/device/origin. The hosted app also imports files locally into the browser; it does not upload panorama bytes to our server. Changing origins or devices does not synchronize data. Palaces → Export ZIP makes a backup; Restore ZIP creates a new palace with new IDs. Keep a backup before deleting or clearing browser storage.
+Palaces/images live in IndexedDB on this browser/device/origin. The hosted app also imports files locally into the browser; it does not upload panorama bytes to our server. Changing origins or devices does not synchronize data. Palace menu → Export ZIP makes a backup; Restore ZIP creates a new palace with new IDs. Keep a backup before deleting or clearing browser storage.
 
 ## Phone motion
 
-Open the HTTPS demo in Android Chrome or iPhone Safari. Tap Enable motion, accept the permission prompt if shown, move the phone gently, and use Recenter/Disable motion. Opening editors/notes or changing rooms disables motion. Touch drag remains available. Actual Android/iPhone sensors, permission prompts and keyboard behavior still require physical-device checks; emulated layout tests do not prove them.
+Open the HTTPS demo in Android Chrome or iPhone Safari. Tap Phone motion, accept the permission prompt if shown, move the phone gently, and use Recenter/Motion off. Opening editors/notes or changing rooms disables motion. Touch drag remains available. Actual Android/iPhone sensors, permission prompts and keyboard behavior still require physical-device checks; emulated layout tests do not prove them.
 
 ## Density fixture and boundaries
 
 node --experimental-strip-types scripts/generate-density.mjs creates ignored .preview-runtime/density-118.zip:118 distinct128px PNGs,224283bytes total. Restore it for a technical density test. Browser validation found118 markers,118 unique images and one canvas. This is not evidence that anyone memorized118 items.
 
-Default memory artwork is28–40 CSSpixels and stays fixed in screen size across zoom. Surface-attached perspective layers are deferred. Navigation connects panoramas; there is no reconstructed3D walking environment. VR, native apps, cloud sync, accounts and spaced repetition are deferred. No offline guarantee or PWA is claimed.
+Default memory artwork is36 CSSpixels (adjustable up to128) and stays fixed in screen size across zoom. Surface-attached perspective layers are deferred. Navigation connects panoramas; there is no reconstructed3D walking environment. VR, native apps, cloud sync, accounts and spaced repetition are deferred. No offline guarantee or PWA is claimed.
 
 Runtime npm audit --omit=dev reported0 vulnerabilities. Full audit reports5 transitive development-linter advisories from braces3.0.3; registry has no patched compatible version. Do not apply a forced downgrade of Next’s ESLint configuration. This is recorded for follow-up.
 

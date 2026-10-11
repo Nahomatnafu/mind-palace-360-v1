@@ -16,6 +16,7 @@ export interface PalaceRepository {
   asset(id: string): Promise<Asset | undefined>;
 }
 export interface Association { id: string; title: string; explanation: string; prompt: string }
+export const MAX_MEMORY_SIZE = 128;
 export const toDegrees = (radians: number) => radians * 180 / Math.PI;
 export const toRadians = (degrees: number) => degrees * Math.PI / 180;
 export const normalizeYaw = (yaw: number) => ((yaw + 180) % 360 + 360) % 360 - 180;
@@ -38,6 +39,6 @@ export function validatePalace(value: unknown): asserts value is Palace {
   for (const room of p.rooms) { claim(room.id); if (typeof room.title !== 'string' || room.title.length > 200 || !room.initialView || (!room.panoramaAssetId && !room.demoSrc && !room.modelSrc)) throw new Error('Invalid room.'); if (room.modelSrc !== undefined && (typeof room.modelSrc !== 'string' || !room.modelSrc || room.modelSrc.length > 500)) throw new Error('Invalid room model.'); vec3(room.initialPosition); coords(room.initialView.yaw,room.initialView.pitch); if (!Number.isFinite(room.initialView.zoom) || room.initialView.zoom < 0 || room.initialView.zoom > 100) throw new Error('Invalid zoom.'); }
   const roomIds = new Set(p.rooms.map(r=>r.id));
   if (p.rooms.length ? !roomIds.has(p.startRoomId) : p.startRoomId !== '') throw new Error('Invalid starting room.');
-  for (const memory of p.memories) { claim(memory.id); coords(memory.yaw,memory.pitch); vec3(memory.position); if (!roomIds.has(memory.roomId) || typeof memory.title !== 'string' || memory.title.length > 200 || typeof memory.note !== 'string' || memory.note.length > 10000 || !['upload','generated','demo'].includes(memory.provenance) || !Number.isFinite(memory.size) || memory.size < 16 || memory.size > 96 || (!memory.imageAssetId && !memory.demoSrc)) throw new Error('Invalid memory.'); }
+  for (const memory of p.memories) { claim(memory.id); coords(memory.yaw,memory.pitch); vec3(memory.position); if (!roomIds.has(memory.roomId) || typeof memory.title !== 'string' || memory.title.length > 200 || typeof memory.note !== 'string' || memory.note.length > 10000 || !['upload','generated','demo'].includes(memory.provenance) || !Number.isFinite(memory.size) || memory.size < 16 || memory.size > MAX_MEMORY_SIZE || (!memory.imageAssetId && !memory.demoSrc)) throw new Error('Invalid memory.'); }
   for (const link of p.links) { claim(link.id); coords(link.yaw,link.pitch); vec3(link.position); if (!roomIds.has(link.roomId) || !roomIds.has(link.targetRoomId) || typeof link.label !== 'string' || link.label.length > 200) throw new Error('Broken room connection.'); }
 }

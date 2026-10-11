@@ -46,7 +46,7 @@ export async function validateAsset(asset: Asset): Promise<void> {
   if (!asset || typeof asset.id!=='string' || !idPattern.test(asset.id) || !(asset.blob instanceof Blob) || !['panorama','memory'].includes(asset.kind)) throw new Error('Invalid image asset.');
   if (!asset.blob.size || asset.blob.size>MAX_ASSET_BYTES) throw new Error('Image exceeds the 32 MB asset limit.');
   const info=rasterInfo(new Uint8Array(await asset.blob.arrayBuffer()));
-  if (info.mimeType!==asset.mimeType || asset.blob.type!==asset.mimeType || info.width!==asset.width || info.height!==asset.height || info.width<1 || info.height<1 || info.width>16384 || info.height>16384 || info.width*info.height>70_000_000) throw new Error('Image metadata does not match a supported image.');
+  if (info.mimeType!==asset.mimeType || asset.blob.type!==asset.mimeType || info.width!==asset.width || info.height!==asset.height || info.width<1 || info.height<1 || info.width>16384 || info.height>16384 || info.width*info.height>80_000_000) throw new Error('Image metadata does not match a supported image.');
   if (asset.kind==='panorama' && Math.abs(info.width/info.height-2)>0.02) throw new Error('Panorama images must have a 2:1 aspect ratio.');
   if (typeof createImageBitmap==='function') {
     const decoded=await createImageBitmap(asset.blob);

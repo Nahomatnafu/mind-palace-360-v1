@@ -5,14 +5,14 @@ Open https://mind-palace-360-v1.vercel.app or scan public/demo-qr.png. No ExpoGo
 ## Three-minute flow
 
 0:00–0:25: “Turn the places you know into images you remember.” Show the room and one image-note pairing.
-0:25–1:10: Add memory → tap a location → upload a prepared icon → title/note → save → open. Keep a prepared image handy.
-1:10–1:50: Show AI concept → three association choices → edited prompt → generation preview. Use the existing golden-apple fallback if generation is slow; never stall the pitch waiting for paid generation.
+0:25–1:10: Edit → Add memory → tap a location → title/note → upload a prepared icon → Save memory → Explore → open. Keep a prepared image handy.
+1:10–1:50: Show Gold in the memory title → optional Suggest 3 objects → describe a gold bracelet → Generate image → Save memory. Use the existing golden-apple fallback if generation is slow; never stall the pitch waiting for paid generation.
 1:50–2:20: Navigate through a circular connection, reload to demonstrate local saving, then show phone motion only after hardware verification.
 2:20–3:00: Explain the creative angle: users design personally meaningful visual stories in familiar spaces. Describe the20-word personal demonstration as an anecdote, not a controlled study. Say118-image technical test verifies rendering, not memorization effectiveness.
 
 ## Phone checklist (NOT RUN until reported)
 
-AndroidChrome and iPhoneSafari: open stable HTTPS URL; tap Enable motion; grant and deny permission separately; yaw/pitch follow hand movement; Recenter; Disable; portrait/landscape; background/resume; open note/editor; touch fallback. Create/upload/save/open one memory. Under advanced placement type '-', '-0.', '-12.5'; Apply; sign toggle. Check keyboard bottom sheet andcomfortable controls and marker selection. Export ZIP and Restore on the other device; confirm origin-local persistence.
+AndroidChrome and iPhoneSafari: open stable HTTPS URL; tap Phone motion; grant and deny permission separately; yaw/pitch follow hand movement; Recenter; Disable; portrait/landscape; background/resume; open note/editor; touch fallback. Create/upload/save/open one memory. Under Size & placement type '-', '-0.', '-12.5'; Apply; sign toggle. Check keyboard bottom sheet andcomfortable controls and marker selection. Export ZIP and Restore on the other device; confirm origin-local persistence.
 
 ## Teammate
 
@@ -26,6 +26,6 @@ Original illustrated studio/gallery, bracelet/ring artwork and a compact verifie
 
 The desktop Codex browser contains Apartment - 9-photo tour, nine rooms and 16 directed circular connections. Connections are initial manual placements at visible doorways, not an automatically reconstructed floor plan. Photos 5 and 6 are identical; both are included.
 
-To reposition: Edit palace > Move hotspots > grab a circle or image and drag. Release saves its position. Tap while moving to edit the connection destination or image; expand Advanced positioning, enter yaw/pitch (negative numbers supported), Apply, then Save. Done moving restores normal circle navigation.
+To reposition quickly: Edit > Move hotspots > drag a circle or image; release saves. To edit a selected item: click a circle or image in Edit, drag it with the sidebar open or enter yaw/pitch (negative numbers supported), Apply, then Save connection / Save memory. Choose Explore to navigate circles and reveal notes. Actual room thumbnails appear below the panorama; the sidebar becomes a bottom sheet on small screens.
 
-For another browser/phone, transfer private-media/apartment/Apartment-9-photo-tour.zip privately and choose Palaces > Restore ZIP. The photos and edits remain on that device. The public URL alone does not transfer desktop photos. Source photos, prepared ZIP and screenshot remain ignored by Git/Vercel.
+For another browser/phone, transfer private-media/apartment/Apartment-9-photo-tour.zip privately and open the palace-name menu > Restore ZIP. The photos and edits remain on that device. The public URL alone does not transfer desktop photos. Source photos, prepared ZIP and screenshot remain ignored by Git/Vercel.

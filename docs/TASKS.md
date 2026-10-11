@@ -25,7 +25,7 @@ Integration owner: Codex. Shared contracts, dependency changes and lockfile are 
 | aneesha | Aneesha | Palace gallery home with long-press delete, template chooser (Real/3D/Cartoon), per-palace routes | Implemented; typecheck/lint/130 tests/build passed; desktop browser flow checked, phone NOT RUN |
 | aneesha (3D) | Aneesha | three.js walkthrough viewer for glTF rooms (look, tap-to-walk, 3D-anchored memories), Family house template from public/models/house1.glb; adds Vec3 fields to Room/Memory/TourLink and @types/three devDependency (needs integration owner sign-off) | typecheck/lint/135 tests/build passed; render, picking and template flow checked in a hidden Chrome tab, glide animation and marker overlay NOT RUN in a visible tab, phone NOT RUN |
 
-Apartment collection: nine supplied panoramas restored locally as a separate palace with 16 editable circular connections. ZIP and connection coordinates remain in ignored private-media. Photos 5 and 6 are identical and both are retained. No apartment assets are published. Initial doorway placement is approximate; the owner can drag circles or edit their coordinates/destination.
+Apartment collection: nine supplied panoramas restored locally as a separate palace with 16 editable circular connections. Original ZIP and connection coordinates remain in ignored private-media; an owner-approved copy is shared in team-assets/apartment in this private repository. Photos 5 and 6 are identical and both are retained. No apartment assets are publicly deployed. Initial doorway placement is approximate; the owner can drag circles or edit their coordinates/destination.
 
 ## Collaboration
 
@@ -36,3 +36,37 @@ Teammate work is ready to partition: create a three-minute Creative-track pitch 
 ## Dependencies and limits
 
 Original apartment folder is available; one image was tested locally. No private media is deployed. Physical sensor tests and an actual117/118-item learning experiment remain user-owned. Initial isolated-runtime network/keyring failures resolved by authorized normal terminal calls; disk exhaustion resolved by removing only rebuild caches and disabling webpack disk cache. No further sign-ins are currently needed.
+
+## October 10 editor and image-quality revision
+
+Owner: Codex (shared contracts unchanged, no new dependencies).
+
+- codex/image-quality: preserve validated panorama JPEG bytes instead of re-encoding/downscaling. Import regression passes.
+- codex/relatable-associations: prefer familiar literal objects; direct Gold example is bracelet/necklace/bar. Protected-handler regression passes. Live Gold/Au request returned Gold bracelet, Gold necklace and Gold bar.
+- codex/transparent-cutouts: require endpoint alpha support, explicit PNG output, visible subject and a transparent border. Reject opaque/blank/translucent-only outputs without automatic paid retry. Fifteen image tests pass. One live generation returned a plain bracelet alone: 768 x 768 PNG, 213015 bytes, alpha 0–255; transparent-border and visible-subject validation passed and output was visually inspected.
+- codex/replace-room-photo: replace a panorama without changing room IDs, camera, memory/link positions; display dimensions. Typecheck, lint, 132 tests and production build pass for the combined changes; replacement control browser validation pending.
+- codex/memory-editor-redesign: implemented from the supplied Kuula screenshots: context-specific right sidebar, real room thumbnail filmstrip, one shared memory title/note, direct picture generation or upload, optional familiar-object suggestions. Phone layout uses a bottom sheet. Desktop and 390px browser checks passed; published and verified at the stable production URL.
+
+The nine supplied apartment Photo_*.jpg files are all 1280 x 640. SHA-256 comparison confirms the private tour ZIP contains all nine exact originals; that ZIP did not reduce them. Older D:/OpenView Homes_First AD_Batch files are 3840 x 1920, but are not assumed to correspond to these apartment views. Higher-resolution exports of the same apartment photos are needed to recover actual detail. Do not upscale and describe it as restored detail. No cloud account is required for byte-preserving local import. Browser GPU texture limits still apply.
+
+- codex/high-resolution-panoramas: supports bounded 11904 x 5952 originals (80 million pixel limit; 32 MB encoded limit unchanged). Import/storage/backup subset: 39 tests pass. Full checks required again before integration.
+- Kuula reference now open at https://kuula.co/edit/n1/collection/7Tshf ; photo sidebar inspected read-only. User supplied five screenshots confirming the sidebar and thumbnail reference. Keep panorama visible alongside a context-specific editor and separate room navigation. No Kuula content saved or modified.
+- All feature branches are pushed and integrated into main. Production deployment dpl_ANE7wC9b26ywr3st7oqpYfzBcqyF is READY and aliased to https://mind-palace-360-v1.vercel.app . Existing local apartment data survived the release; all nine thumbnails and one panorama canvas rendered.
+
+## Private teammate apartment bundle - October 10, 2026
+
+- codex/team-apartment-assets: owner explicitly requested sharing the nine apartment photos in GitHub. Repository privacy and aneeshaa1 write access verified. Exact source copies plus the ready-to-restore nine-room, 16-connection ZIP are in team-assets/apartment. This is a narrow exception to the prior no-photo-commits policy.
+- The entire team-assets directory is excluded from Vercel and is outside public/. No API key or demo code is included. The app still uses browser-local persistence; each teammate restores the ZIP in their own browser. No cloud synchronization is implied.
+- Verification passed: SHA-256 matches all nine source copies and all nine archived originals; ZIP has nine rooms, 16 connections and zero personal notes. Staged files match the exact allowlist. Private-media and env files remain ignored; build traces contain neither private-media nor team-assets. Typecheck, lint, all 133 tests (12 files), and production build passed.
+
+## Visual polish and generation flow
+
+- codex/ai-generation-flow: replace three-per-ten-minute demo quota with six images / twenty suggestions per minute; preserve two in-flight slots, deduplication and explicit-only retries. Cache successful transparent-model discovery for five minutes and use faster lossless PNG compression. Provider 402 now has a distinct credit/key-limit message. Integration owner: Codex; no dependency changes. Automated and real generation checks passed.
+
+- codex/marker-size-precision: image size up to 128px in UI, validation and ZIP persistence; 36px default unchanged. Display committed angles to one decimal without rounding stored drag coordinates; preserve signed intermediate drafts and explicit Apply. Shared schema shape unchanged, widened bound owned by Codex.
+
+- codex/studio-visual-design: self-hosted Manrope / Space Grotesk with OFL licenses, doorway mark, charcoal/lilac studio palette, consistent SVG controls and right-aligned select/disclosure chevrons. Existing panorama-first sidebar and phone bottom sheet retained. Desktop, 390px layout and production verification passed.
+
+Combined verification: typecheck, lint, 137 tests / 12 files and production build passed. Desktop and 390px browser checks confirmed 128px fixed markers after zoom/save/reload, one-decimal negative coordinates, correct local fonts, consistent selects and no horizontal overflow. One real transparent bracelet generated in 9.1 seconds; physical phones remain untested.
+
+- codex/bold-connection-markers: recreate the supplied reference as a resolution-independent CSS circle with thick white outer ring, transparent gap and solid white center. Remove MEMORY STUDIO header subtitle. Existing marker sizes, coordinates, selection and dragging unchanged. No uploaded screenshot asset used. Typecheck, lint, all 137 tests (including viewer navigation/dragging regressions), and production build passed.
