@@ -10,7 +10,7 @@ The hosted app uses one shared Supabase workspace. Both teammates open the same 
 - An open palace checks for updates every eight seconds while visible. The gallery refreshes when the window regains focus and has **Refresh shared space** for a manual update.
 - Deletion hides a palace for everyone using a database tombstone. It prevents stale clients from recreating it. Images and tombstones are retained for this demo; cleanup and a restore interface are deferred.
 - Browser-local IndexedDB data is left untouched, but is no longer the source for the shared gallery. ZIP restore creates a new shared palace. ZIP export strips the cloud revision so imports start independently.
-- My Apartment was seeded from the approved nine-photo backup, with its 16 connections and original image bytes. Family house uses Aneesha's bundled model. Existing browser-local memories were not migrated.
+- My Apartment was seeded from the approved nine-photo backup, with its 16 connections and original image bytes. Family house uses Aneesha's bundled model. Existing browser-local memories were not migrated. The owner subsequently requested removing the duplicate sixth photo: My Apartment now has eight rooms and 14 connections; the fifth photo is retained, all rooms remain reachable, and original cloud image assets are preserved.
 
 ## Server configuration
 

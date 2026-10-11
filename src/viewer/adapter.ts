@@ -1,9 +1,10 @@
 import { Viewer, events } from '@photo-sphere-viewer/core';
-import { MarkersPlugin } from '@photo-sphere-viewer/markers-plugin';
-import { normalizeYaw, toDegrees, toRadians, type Camera, type Vec3 } from '@/domain/model';
+import { floorTransform } from './floor-transform';
+import { MarkersPlugin, type MarkerElement } from '@photo-sphere-viewer/markers-plugin';
+import { normalizeYaw, toDegrees, toRadians, type Camera, type Vec3, type ConnectionSurface } from '@/domain/model';
 
 /** Markers carry spherical coordinates for panoramas and, inside 3D model rooms, a world position. */
-export interface ViewerMarker { id: string; yaw: number; pitch: number; label: string; size: number; image?: string; kind: 'memory' | 'link'; position?: Vec3 }
+export interface ViewerMarker { id: string; yaw: number; pitch: number; label: string; size: number; image?: string; kind: 'memory' | 'link'; surface?: ConnectionSurface; position?: Vec3 }
 /** The controls shared by every viewer engine so the workspace can drive either one. */
 export interface CameraControls {
   markers(markers: ViewerMarker[]): void;
@@ -33,6 +34,7 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
   const cancelDrag=()=>{if(drag){updatePosition(drag.item.id,drag.item.yaw,drag.item.pitch);drag=null;}pointer=null;};
   const pointerDown=(event:PointerEvent)=>{
     pointer={x:event.clientX,y:event.clientY};movedPointer=false;
+    suppressed=null;
     const marker=event.target instanceof Element?event.target.closest('[data-marker-id]') as HTMLElement|null:null;
     const item=currentMarkers.find(item=>item.id===marker?.dataset.markerId);
     if(!editing||!item||event.button!==0||drag)return;
@@ -52,6 +54,7 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
   };
   const pointerUp=(event:PointerEvent)=>{
     if(drag&&event.pointerId!==drag.pointerId)return;
+    if(pointer&&Math.hypot(event.clientX-pointer.x,event.clientY-pointer.y)>6)movedPointer=true;
     if(drag)pointerMove(event);
     pointer=null;if(!drag)return;
     event.stopImmediatePropagation();const completed=drag;drag=null;
@@ -82,25 +85,48 @@ export function createViewer(container: HTMLElement, callbacks: ViewerCallbacks)
   viewer.addEventListener(events.PositionUpdatedEvent.type,moved);
   let disposed=false;
   let request=0;
+  let loading=false;
+  let markerVersion=0;
   return {
     async load(src,position) {
       const version=++request;
       cancelDrag();
+      loading=true;markerVersion++;currentMarkers=[];
       plugin.clearMarkers();
       const loaded=await viewer.setPanorama(src,{position:{yaw:toRadians(position.yaw),pitch:toRadians(position.pitch)},zoom:position.zoom,transition:false});
-      if (!disposed && version===request && !loaded) throw new Error('Room loading was interrupted. Please try again.');
+      if (!disposed && version===request) {
+        if(!loaded) throw new Error('Room loading was interrupted. Please try again.');
+        loading=false;
+      }
     },
     markers(items) {
-      if(disposed) return;
+      if(disposed || loading) return;
       cancelDrag();currentMarkers=items;
+      const version=++markerVersion;
       plugin.setMarkers(items.map(item=>{
         const button=document.createElement('button');
         button.type='button'; button.className=`palace-marker ${item.kind}`;
         button.setAttribute('aria-label',item.label); button.title=item.label;
         button.dataset.markerId=item.id;
         button.style.width=`${item.size}px`;button.style.height=`${item.size}px`;
-        if(item.image){const image=document.createElement('img');image.src=item.image;image.alt='';image.draggable=false;button.append(image);} else {const ring=document.createElement('span');ring.className='portal-ring';button.append(ring);}
-        button.addEventListener('click',event=>{event.stopPropagation();if(suppressed?.id===item.id&&Date.now()<suppressed.until){suppressed=null;return;}callbacks.select(item.id);});
+        if(item.image){const image=document.createElement('img');image.src=item.image;image.alt='';image.draggable=false;button.append(image);} else {const ring=document.createElement('span');ring.className='portal-ring';button.append(ring);
+          if(item.kind==='link'&&item.surface==='floor'){
+            const floorButton=button as MarkerElement;
+            const render=(yaw:number,pitch:number,view:{yaw:number;pitch:number})=>{ring.style.transform=floorTransform(yaw,pitch,view.yaw,view.pitch);};
+            render(toRadians(item.yaw),toRadians(item.pitch),viewer.getPosition());
+            floorButton.updateMarker=({marker,viewerPosition})=>{
+              const position=marker.config.position;
+              if(position&&!Array.isArray(position)){const point=viewer.dataHelper.cleanPosition(position);render(point.yaw,point.pitch,viewerPosition);}
+            };
+          }}
+        button.addEventListener('click',event=>{
+          event.stopPropagation();
+          // A drag, a second click of a double-click, or an old room's DOM must
+          // never turn into another navigation after the view has changed.
+          if(disposed||loading||version!==markerVersion||movedPointer||event.button!==0||event.detail>1)return;
+          if(suppressed?.id===item.id&&Date.now()<suppressed.until){suppressed=null;return;}
+          callbacks.select(item.id);
+        });
         return {id:item.id,position:{yaw:toRadians(item.yaw),pitch:toRadians(item.pitch)},element:button,size:{width:item.size,height:item.size},hoverScale:false};
       }));
     },

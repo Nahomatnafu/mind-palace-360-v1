@@ -6,7 +6,8 @@ export interface Camera { yaw: number; pitch: number; zoom: number }
 export interface Vec3 { x: number; y: number; z: number }
 export interface Room { id: string; title: string; panoramaAssetId?: string; demoSrc?: string; modelSrc?: string; initialView: Camera; initialPosition?: Vec3 }
 export interface Memory { id: string; roomId: string; title: string; note: string; imageAssetId?: string; demoSrc?: string; yaw: number; pitch: number; size: number; provenance: 'upload' | 'generated' | 'demo'; position?: Vec3 }
-export interface TourLink { id: string; roomId: string; targetRoomId: string; yaw: number; pitch: number; label: string; size?: number; position?: Vec3 }
+export type ConnectionSurface = 'wall' | 'floor';
+export interface TourLink { id: string; roomId: string; targetRoomId: string; yaw: number; pitch: number; label: string; size?: number; surface?: ConnectionSurface; position?: Vec3 }
 export interface Palace { revision?: number; schemaVersion: 1; id: string; title: string; description?: string; startRoomId: string; rooms: Room[]; memories: Memory[]; links: TourLink[]; updatedAt: string }
 export interface Asset { id: string; blob: Blob; mimeType: string; width: number; height: number; kind: 'panorama' | 'memory' }
 export interface PalaceSummary { id: string; title: string; updatedAt: string }
@@ -43,5 +44,5 @@ export function validatePalace(value: unknown): asserts value is Palace {
   const roomIds = new Set(p.rooms.map(r=>r.id));
   if (p.rooms.length ? !roomIds.has(p.startRoomId) : p.startRoomId !== '') throw new Error('Invalid starting room.');
   for (const memory of p.memories) { claim(memory.id); coords(memory.yaw,memory.pitch); vec3(memory.position); if (!roomIds.has(memory.roomId) || typeof memory.title !== 'string' || memory.title.length > 200 || typeof memory.note !== 'string' || memory.note.length > 10000 || !['upload','generated','demo'].includes(memory.provenance) || !Number.isFinite(memory.size) || memory.size < 16 || memory.size > MAX_MEMORY_SIZE || (!memory.imageAssetId && !memory.demoSrc)) throw new Error('Invalid memory.'); }
-  for (const link of p.links) { claim(link.id); coords(link.yaw,link.pitch); vec3(link.position); if (link.size !== undefined && (!Number.isFinite(link.size) || link.size < 16 || link.size > MAX_CONNECTION_SIZE)) throw new Error('Invalid connection size.'); if (!roomIds.has(link.roomId) || !roomIds.has(link.targetRoomId) || typeof link.label !== 'string' || link.label.length > 200) throw new Error('Broken room connection.'); }
+  for (const link of p.links) { claim(link.id); coords(link.yaw,link.pitch); vec3(link.position); if (link.surface !== undefined && link.surface !== 'wall' && link.surface !== 'floor') throw new Error('Invalid connection surface.'); if (link.size !== undefined && (!Number.isFinite(link.size) || link.size < 16 || link.size > MAX_CONNECTION_SIZE)) throw new Error('Invalid connection size.'); if (!roomIds.has(link.roomId) || !roomIds.has(link.targetRoomId) || typeof link.label !== 'string' || link.label.length > 200) throw new Error('Broken room connection.'); }
 }

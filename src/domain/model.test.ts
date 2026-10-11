@@ -20,3 +20,5 @@ describe('palace integrity',()=>{
 it('accepts memory sizes through 128px and rejects oversized markers',()=>{const p=createDemo();p.memories[0].size=128;expect(()=>validatePalace(p)).not.toThrow();p.memories[0].size=129;expect(()=>validatePalace(p)).toThrow('Invalid memory');});
 
 it('keeps legacy connections valid and bounds optional saved circle sizes',()=>{const p=createDemo();const link=p.links[0];delete link.size;expect(()=>validatePalace(p)).not.toThrow();link.size=128;expect(()=>validatePalace(p)).not.toThrow();for(const size of [0,15,129,NaN,Infinity]){link.size=size;expect(()=>validatePalace(p)).toThrow('connection size');}});
+
+it('accepts legacy, wall and floor connections but rejects unknown surfaces',()=>{const p=createDemo();for(const surface of [undefined,'wall','floor']){Object.assign(p.links[0],{surface});expect(()=>validatePalace(p)).not.toThrow();}for(const surface of ['ceiling',null,1]){Object.assign(p.links[0],{surface});expect(()=>validatePalace(p)).toThrow('connection surface');}});
