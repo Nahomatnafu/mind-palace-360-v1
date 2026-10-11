@@ -11,23 +11,25 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "next": "16.4.0",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
     "@photo-sphere-viewer/core": "5.14.0",
     "@photo-sphere-viewer/markers-plugin": "5.14.0",
     "dexie": "4.4.6",
     "fflate": "0.8.3",
-    "sharp": "0.35.5"
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "sharp": "0.35.5",
+    "three": "0.179.1"
   },
   "devDependencies": {
-    "typescript": "5.9.3",
-    "eslint": "9.39.1",
-    "eslint-config-next": "16.4.0",
     "@types/node": "22.20.4",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
-    "vitest": "5.0.1",
-    "fake-indexeddb": "6.2.5"
+    "@types/three": "0.179.0",
+    "eslint": "9.39.1",
+    "eslint-config-next": "16.4.0",
+    "fake-indexeddb": "6.2.5",
+    "typescript": "5.9.3",
+    "vitest": "5.0.1"
   }
 }
